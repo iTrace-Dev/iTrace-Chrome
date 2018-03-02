@@ -12,6 +12,7 @@
   "permissions": [
     "activeTab",
     "unlimitedStorage",
-    "system.display"
+    "system.display",
+    "downloads"
   ]
 }
