@@ -46,32 +46,183 @@ function translateCoordinates(x, y) {
     }
 }
 
-$(document).ready(function () {
-    // establish the websocket connection
-    var websocket = new WebSocket("ws://localhost:7007");
-
-    // listen for eye gaze data coming from the server
-    websocket.onmessage = function (e) {
-        // deal with incoming eyegaze data
-        var eyeGazeData = e.data;
-        var timeStamp = eyeGazeData.substring(0, string.indexOf(','));
-
-        var coordString = eyeGazeData.substring(string.indexOf(',') + 1);
-
-        var x = coordString.substring(0                           , coordString.indexOf(','));
-        var y = coordString.substring(coordString.indexOf(',') + 1, coordString.length      );
-
-        // parse values
-        x = parseInt(x);
-        y = parseInt(y);
-
-        // get translated coordinates
-        var coords = translateCoordinates(x, y);
-
-        if (!coords) {
-            // user is not looking in the html viewport
-        } else {
-            // user is looking in the html viewport
+function getSOElementResult(elements) {
+    for (element of elements) {
+        if (element.tagName == 'CODE') {
+            if (this.questionElement.contains(element)) {
+                // question code
+                console.log('question code');
+                return 'question code';
+            }
+            for (answer in this.answerElements) {
+                if (answer.contains(element)) {
+                    // answer code
+                    console.log('answer code');
+                    return 'answer code';
+                }
+            }
         }
+
+        if (element.tagName == 'IMG') {
+            if (this.questionElement.contains(element)) {
+                // question code
+                console.log('question image');
+                return 'question image';
+            }
+            for (answer in this.answerElements) {
+                if (answer.contains(element)) {
+                    // answer code
+                    console.log('answer image');
+                    return 'answer image';
+                }
+            }
+        }
+
+        if (element.classList.contains('post-text')) {
+            if (this.questionElement.contains(element)) {
+                // question code
+                console.log('question text');
+                return 'question text';
+            }
+            for (answer in this.answerElements) {
+                if (answer.contains(element)) {
+                    // answer code
+                    console.log('answer text');
+                    return 'answer text';
+                }
+            }
+        }
+
+        if (element.classList.contains('post-tag')) {
+            console.log('question-tag');
+            return 'question tag';
+        }
+
+        if (element.classList.contains('vote')) {
+            if (this.questionElement.contains(element)) {
+                // question code
+                console.log('question vote');
+                return 'question vote';
+            }
+            for (answer in this.answerElements) {
+                if (answer.contains(element)) {
+                    // answer code
+                    console.log('answer vote');
+                    return 'answer vote';
+                }
+            }
+        }
+
+        if (element.Id == 'question-header') {
+            console.log('question-title');
+            return 'question-title';
+        }
+
+        var comment
+
+        if (element)
     }
+}
+
+function getBZElementResult(elements) {
+    for (element of elements) {
+       if (element.classList.contains('bz_show_bug_column')) {
+           console.log('question info - 1');
+       }
+
+       if (element.classList.contains('bz_alias_short_desc_container')) {
+           console.log('question title');
+       }
+
+       if (element.classList.contains('bz_comment_text')) {
+           console.log('answer info');
+       }
+
+       if (element.classList.contains('bz_attach_extra_info')) {
+           console.log('attachment info');
+       }
+   }
+}
+
+$(document).ready(function () {
+    chrome.tabs.query({ 'active': true, 'lastFocusedWindow': true }, function (tabs) {
+        var url = tabs[0].url;
+        this.currentTab = tabs[0];
+        if (url.includes('stackoverflow.com/questions/')) {
+            chrome.tabs.executeScript(this.currentTab.Id, {
+                'code': 'document.getElementById("question")'
+            }, function (result) {
+                // all results for the above funciton call held in results[0]
+                this.questionElement = result[0][0];
+            }.bind(this));
+        }
+    }.bind(this));
+
+    chrome.tabs.query({ 'active': true, 'lastFocusedWindow': true }, function (tabs) {
+        var url = tabs[0].url;
+        this.currentTab = tabs[0];
+        if (url.includes('stackoverflow.com/questions/')) {
+            chrome.tabs.executeScript(this.currentTab.Id, {
+                'code': 'document.getElementById("answers")'
+            }, function (result) {
+                // all results for the above funciton call held in results[0]
+                this.answerElements = result[0];
+            }.bind(this));
+        }
+    }.bind(this));
+
+    // establish the websocket connection
+    $('#start').on('click', function () {
+        var websocket = new WebSocket('ws://localhost:7007');
+
+        // listen for eye gaze data coming from the server
+        websocket.onmessage = function (e) {
+            // deal with incoming eyegaze data
+            var eyeGazeData = e.data;
+            var timeStamp = eyeGazeData.substring(0, string.indexOf(','));
+
+            var coordString = eyeGazeData.substring(string.indexOf(',') + 1);
+
+            var x = coordString.substring(0                           , coordString.indexOf(','));
+            var y = coordString.substring(coordString.indexOf(',') + 1, coordString.length      );
+
+            // parse values
+            x = parseInt(x);
+            y = parseInt(y);
+
+            // get translated coordinates
+            var coords = translateCoordinates(x, y);
+
+            if (!coords) {
+                // user is not looking in the html viewport
+            } else {
+                // user is looking in the html viewport
+                // need to check which website the user is looking at
+                chrome.tabs.query({ 'active': true, 'lastFocusedWindow': true }, function (tabs) {
+                    var url = tabs[0].url;
+                    this.currentTab = tabs[0];
+                    if (url.includes('stackoverflow.com/questions/')) {
+                        chrome.tabs.executeScript(this.currentTab.Id, {
+                            'code': 'document.elementsFromPoint(' + coords.x + ',' + coords.y + ')'
+                        }, function (result) {
+                            // all results for the above funciton call held in results[0]
+                            console.log(result[0]);
+                            var elementResult = this.getSOElement(result[0]);
+                            // TODO: add result to buffer to be saved off after excecution ends
+                        }.bind(this));
+                    }
+                    if (url.includes('bugzilla')) { // NOTE: This include may be incorect, will need to do some more research
+                        chrome.tabs.executeScript(this.currentTab.Id, {
+                            'code': 'document.elementsFromPoint(' + coords.x + ',' + coords.y + ')'
+                        }, function (result) {
+                            // all results for the above funciton call held in results[0]
+                            console.log(result[0]);
+                            var elementResult = this.getBZElementResult(result[0]);
+                            // TODO: add result to buffer to be saved off after excecution ends
+                        }.bind(this));
+                    }
+                }.bind(this));
+            }
+        }
+    }.bind(this));
 });
