@@ -27,15 +27,13 @@ function getCurrentTabUrl(callback) {
 
 function translateCoordinates(x, y) {
     // broswer viewport dimensions
-    var browserX = $(window).height();
-    var browserY = $(window).width();
 
     // screen dimensions
     var screenX = screen.height;
     var screenY = screen.width;
 
-    var offsetX = screenX - broswerX;
-    var offsetY = screenY - browserY;
+    var offsetX = screenX - this.browserX;
+    var offsetY = screenY - this.browserY;
 
     if (x < offsetX || y < offsetY) {
         // user is looking outside of the broswer viewport, most likely at the broswer's shell
@@ -117,10 +115,6 @@ function getSOElementResult(elements) {
             console.log('question-title');
             return 'question-title';
         }
-
-        var comment
-
-        if (element)
     }
 }
 
@@ -144,7 +138,114 @@ function getBZElementResult(elements) {
    }
 }
 
-$(document).ready(function () {
+
+	chrome.tabs.query({ 'active': true }, function (tabs) {
+        var url = tabs[0].url;
+        this.currentTab = tabs[0];
+        if (url.includes('stackoverflow.com/questions/')) {
+            chrome.tabs.executeScript({
+                'code': 'document.getElementById("question")'
+            }, function (result) {
+                // all results for the above funciton call held in results[0]
+				console.log('question element');
+				console.log(result);
+                this.questionElement = result[0];
+            }.bind(this));
+        }
+    }.bind(this));
+
+    chrome.tabs.query({ 'active': true }, function (tabs) {
+        var url = tabs[0].url;
+        this.currentTab = tabs[0];
+        if (url.includes('stackoverflow.com/questions/')) {
+            chrome.tabs.executeScript({
+                'code': 'document.getElementById("answers")'
+            }, function (result) {
+                // all results for the above funciton call held in results[0]
+				console.log('answer elements');
+				console.log(result);
+                this.answerElements = result[0];
+            }.bind(this));
+        }
+    }.bind(this));
+	
+	chrome.tabs.query({ 'active': true }, function (tabs) {
+		chrome.tabs.executeScript({
+			'code': 'window.innerHeight'
+		}, function (result) {
+			console.log('browserX');
+			console.log(result);
+			this.browserX = result[0];
+		}.bind(this));
+	}.bind(this));
+	
+	chrome.tabs.query({ 'active': true }, function (tabs) {
+		chrome.tabs.executeScript({
+			'code': 'window.innerWidth'
+		}, function (result) {
+			console.log('browserY');
+			console.log(result);
+			this.browserY = result[0];
+		}.bind(this));
+	}.bind(this));
+
+    // establish the websocket connection
+    document.getElementById('start').addEventListener('click', function () {
+		console.log('START SESSION');
+        var websocket = new WebSocket('ws://localhost:7007');
+
+        // listen for eye gaze data coming from the server
+        websocket.onmessage = function (e) {
+            // deal with incoming eyegaze data
+            var eyeGazeData = e.data;
+            var timeStamp = eyeGazeData.substring(0, eyeGazeData.indexOf(','));
+
+            var coordString = eyeGazeData.substring(eyeGazeData.indexOf(',') + 1);
+
+            var x = coordString.substring(0                           , coordString.indexOf(','));
+            var y = coordString.substring(coordString.indexOf(',') + 1, coordString.length      );
+
+            // parse values
+            x = parseInt(x);
+            y = parseInt(y);
+
+            // get translated coordinates
+            var coords = translateCoordinates(x, y);
+
+            if (!coords) {
+                // user is not looking in the html viewport
+            } else {
+                // user is looking in the html viewport
+                // need to check which website the user is looking at
+                chrome.tabs.query({ 'active': true }, function (tabs) {
+                    var url = tabs[0].url;
+                    this.currentTab = tabs[0];
+                    if (url.includes('stackoverflow.com/questions/')) {
+                        chrome.tabs.executeScript({
+                            'code': 'document.elementsFromPoint(' + coords.x + ',' + coords.y + ')'
+                        }, function (result) {
+                            // all results for the above funciton call held in results[0]
+                            console.log(result[0]);
+                            var elementResult = this.getSOElement(result[0]);
+                            // TODO: add result to buffer to be saved off after excecution ends
+                        }.bind(this));
+                    }
+                    if (url.includes('bugzilla')) { // NOTE: This include may be incorect, will need to do some more research
+                        chrome.tabs.executeScript({
+                            'code': 'document.elementsFromPoint(' + coords.x + ',' + coords.y + ')'
+                        }, function (result) {
+                            // all results for the above funciton call held in results[0]
+                            console.log(result[0]);
+                            var elementResult = this.getBZElementResult(result[0]);
+                            // TODO: add result to buffer to be saved off after excecution ends
+                        }.bind(this));
+                    }
+                }.bind(this));
+            }
+        }.bind(this);
+    }.bind(this));
+
+/*$(document).ready(function () {
     chrome.tabs.query({ 'active': true, 'lastFocusedWindow': true }, function (tabs) {
         var url = tabs[0].url;
         this.currentTab = tabs[0];
@@ -225,4 +326,4 @@ $(document).ready(function () {
             }
         }
     }.bind(this));
-});
+});*/
