@@ -10,9 +10,15 @@
     "default_popup": "popup.html"
   },
   "permissions": [
+    "management",
     "activeTab",
     "unlimitedStorage",
     "system.display",
-    "downloads"
-  ]
+    "downloads",
+    "tabs",
+    "https://stackoverflow.com/*"
+  ],
+  "externally_connectable": {
+    "matches": ["*://*.stackoverflow.com/**"]
+  }
 }
