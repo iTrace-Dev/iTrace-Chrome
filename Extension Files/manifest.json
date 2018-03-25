@@ -19,6 +19,6 @@
     "https://stackoverflow.com/*"
   ],
   "externally_connectable": {
-    "matches": ["*://*.stackoverflow.com/**"]
+    "matches": ["*://*.stackoverflow.com/**", "https://stackoverflow.com/*"]
   }
 }
