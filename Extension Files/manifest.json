@@ -4,19 +4,25 @@
   "name": "iTrace-Chrome Plguin",
   "description": "Plugin which allows for tracking eyegaze data on webpages in Chrome.",
   "version": "0.0.1",
-
+  "content_scripts": [
+    {
+      "matches": ["*://stackoverflow.com/*"],
+      "js": ["/assets/js/getSOQuestions.js"]
+    }
+  ],
+  "background": {
+    "persistent": false,
+    "scripts": ["/assets/js/jQuery-3.3.1.js", "/assets/js/main.js"]
+  },
   "browser_action": {
-    "default_icon": "icon.png",
-    "default_popup": "popup.html"
+    "default_icon": {                    
+      "16": "icon.png",           
+      "24": "icon.png",           
+      "32": "icon.png"            
+    }      
   },
   "permissions": [
-    "management",
-    "activeTab",
-    "unlimitedStorage",
-    "system.display",
-    "downloads",
-    "tabs",
-    "https://stackoverflow.com/*"
+    "activeTab"
   ],
   "externally_connectable": {
     "matches": ["*://*.stackoverflow.com/**", "https://stackoverflow.com/*"]

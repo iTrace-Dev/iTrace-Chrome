@@ -21,7 +21,7 @@ function getCurrentTabUrl(callback) {
 
     console.assert(typeof url == 'string', 'tab.url should be a string');
 
-    callback(url);
+    callback(url, tab.id);
   });
 }
 
@@ -138,7 +138,25 @@ function getBZElementResult(elements) {
    }
 }
 
-chrome.runtime.onMessageExternal.addListener(function(request, sender, sendResponse) {
+function receiveQuestion(questionElement) {
+    var parser = new DOMParser();
+    this.jQuestionElement = $.parseHTML(questionElement);
+    this.questionElement = parser.parseFromString(questionElement, 'text/html');
+
+    console.log(this.jQuestionElement);
+    console.log(this.questionElement);
+}
+
+function receiveAnswers(answerElements) {
+    var parser = new DOMParser();
+    this.jAnswerElements = $.parseHTML(answerElements);
+    this.answerElements = parser.parseFromString(answerElements, 'text/html');
+
+    console.log(this.jAnswerElements);
+    console.log(this.answerElements);
+}
+
+/*chrome.runtime.onMessageExternal.addListener(function(request, sender, sendResponse) {
     console.log('message recieved')
     if (request.type == "question") {
         var element = request.element;
@@ -153,17 +171,48 @@ chrome.runtime.onMessageExternal.addListener(function(request, sender, sendRespo
         console.log(element);
         this.answerElements = element;
     }
-}.bind(this));
+}.bind(this));*/
 
 // establish the websocket connection
-document.getElementById('start').addEventListener('click', function () {
+chrome.browserAction.onClicked.addListener(function (tab) {
     console.log('START SESSION');
 
-    chrome.management.getAll(function (x) {
-        console.log(x);
-    });
+    chrome.tabs.executeScript({
+        'code': 'window.innerHeight'
+    }, function (result) {
+        console.log('browserX');
+        console.log(result);
+        this.browserX = result[0];
+    }.bind(this));
 
-    chrome.tabs.query({ 'active': true }, function (tabs) {
+    chrome.tabs.executeScript({
+        'code': 'window.innerWidth'
+    }, function (result) {
+        console.log('browserY');
+        console.log(result);
+        this.browserY = result[0];
+    }.bind(this));
+
+    //chrome.tabs.executeScript({ 'file': '/assets/js/getSOQuestions.js' });
+
+    var queryInfo = {
+        active: true,
+        currentWindow: true
+    };
+    var url = tab.url;
+    var id = tab.id;
+    console.log(url);
+
+    var urlRegex = /^https?:\/\/(?:[^./?#]+\.)?stackoverflow\.com/;
+
+    if (urlRegex.test(url)) {
+        // ...if it matches, send a message specifying a callback too
+        chrome.tabs.sendMessage(id, { text: 'get_question' }, this.receiveQuestion);
+        chrome.tabs.sendMessage(id, { text: 'get_answers'  }, this.receiveAnswers );
+    }
+}.bind(this));
+
+    /*chrome.tabs.query({ 'active': true }, function (tabs) {
         var url = tabs[0].url;
         this.currentTab = tabs[0];
         if (url.includes('stackoverflow.com')) {
@@ -177,23 +226,7 @@ document.getElementById('start').addEventListener('click', function () {
                 file: '/assets/js/getSOAnswers.js'
             });
         }
-
-        chrome.tabs.executeScript({
-            'code': 'window.innerHeight'
-        }, function (result) {
-            console.log('browserX');
-            console.log(result);
-            this.browserX = result[0];
-        }.bind(this));
-
-        chrome.tabs.executeScript({
-            'code': 'window.innerWidth'
-        }, function (result) {
-            console.log('browserY');
-            console.log(result);
-            this.browserY = result[0];
-        }.bind(this));
-    }.bind(this));
+    }.bind(this));*/
 
     // var websocket = new WebSocket('ws://localhost:7007');
 
@@ -246,4 +279,3 @@ document.getElementById('start').addEventListener('click', function () {
             }.bind(this));
         }
     }.bind(this);*/
-}.bind(this));
