@@ -47,12 +47,12 @@ function translateCoordinates(x, y) {
 function getSOElementResult(elements) {
     for (element of elements) {
         if (element.tagName == 'CODE') {
-            if (this.questionElement.contains(element)) {
+            if (this.questionElement.Body.contains(element)) {
                 // question code
                 console.log('question code');
                 return 'question code';
             }
-            for (answer in this.answerElements) {
+            for (answer in this.Body.answerElements) {
                 if (answer.contains(element)) {
                     // answer code
                     console.log('answer code');
@@ -62,12 +62,12 @@ function getSOElementResult(elements) {
         }
 
         if (element.tagName == 'IMG') {
-            if (this.questionElement.contains(element)) {
+            if (this.questionElement.Body.contains(element)) {
                 // question code
                 console.log('question image');
                 return 'question image';
             }
-            for (answer in this.answerElements) {
+            for (answer in this.Body.answerElements) {
                 if (answer.contains(element)) {
                     // answer code
                     console.log('answer image');
@@ -77,12 +77,12 @@ function getSOElementResult(elements) {
         }
 
         if (element.classList.contains('post-text')) {
-            if (this.questionElement.contains(element)) {
+            if (this.questionElement.Body.contains(element)) {
                 // question code
                 console.log('question text');
                 return 'question text';
             }
-            for (answer in this.answerElements) {
+            for (answer in this.Body.answerElements) {
                 if (answer.contains(element)) {
                     // answer code
                     console.log('answer text');
@@ -97,12 +97,12 @@ function getSOElementResult(elements) {
         }
 
         if (element.classList.contains('vote')) {
-            if (this.questionElement.contains(element)) {
+            if (this.questionElement.Body.contains(element)) {
                 // question code
                 console.log('question vote');
                 return 'question vote';
             }
-            for (answer in this.answerElements) {
+            for (answer in this.Body.answerElements) {
                 if (answer.contains(element)) {
                     // answer code
                     console.log('answer vote');
@@ -210,28 +210,11 @@ chrome.browserAction.onClicked.addListener(function (tab) {
         chrome.tabs.sendMessage(id, { text: 'get_question' }, this.receiveQuestion);
         chrome.tabs.sendMessage(id, { text: 'get_answers'  }, this.receiveAnswers );
     }
-}.bind(this));
 
-    /*chrome.tabs.query({ 'active': true }, function (tabs) {
-        var url = tabs[0].url;
-        this.currentTab = tabs[0];
-        if (url.includes('stackoverflow.com')) {
-            chrome.tabs.executeScript({
-                //'code': 'var x = document.getElementById("question"); console.log(x); chrome.runtime.sendMessage("gkcbgjehbfmhlaajkdnefcbhfcahhcgg", { element: x, type: "question" });'
-                file: '/assets/js/getSOQuestions.js'
-            });
-
-            chrome.tabs.executeScript({
-                //'code': 'var y = document.getElementById("answers"); console.log(y); chrome.runtime.sendMessage("gkcbgjehbfmhlaajkdnefcbhfcahhcgg", { element: y, type: "answer" });'
-                file: '/assets/js/getSOAnswers.js'
-            });
-        }
-    }.bind(this));*/
-
-    // var websocket = new WebSocket('ws://localhost:7007');
+    var websocket = new WebSocket('ws://localhost:7007');
 
     // listen for eye gaze data coming from the server
-    /*websocket.onmessage = function (e) {
+    websocket.onmessage = function (e) {
         // deal with incoming eyegaze data
         var eyeGazeData = e.data;
         var timeStamp = eyeGazeData.substring(0, eyeGazeData.indexOf(','));
@@ -257,25 +240,12 @@ chrome.browserAction.onClicked.addListener(function (tab) {
                 var url = tabs[0].url;
                 this.currentTab = tabs[0];
                 if (url.includes('stackoverflow.com/questions/')) {
-                    chrome.tabs.executeScript({
-                        'code': 'document.elementsFromPoint(' + coords.x + ',' + coords.y + ')'
-                    }, function (result) {
-                        // all results for the above funciton call held in results[0]
-                        console.log(result[0]);
-                        var elementResult = this.getSOElement(result[0]);
-                        // TODO: add result to buffer to be saved off after excecution ends
-                    }.bind(this));
+                    chrome.tabs.sendMessage(id, { text: 'get_so_coordinate', x: x, y: y  }, this.getSOElementResult );
                 }
                 if (url.includes('bugzilla')) { // NOTE: This include may be incorect, will need to do some more research
-                    chrome.tabs.executeScript({
-                        'code': 'document.elementsFromPoint(' + coords.x + ',' + coords.y + ')'
-                    }, function (result) {
-                        // all results for the above funciton call held in results[0]
-                        console.log(result[0]);
-                        var elementResult = this.getBZElementResult(result[0]);
-                        // TODO: add result to buffer to be saved off after excecution ends
-                    }.bind(this));
+                    
                 }
             }.bind(this));
         }
-    }.bind(this);*/
+    }.bind(this);
+}.bind(this));

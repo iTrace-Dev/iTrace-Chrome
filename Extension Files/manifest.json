@@ -7,7 +7,11 @@
   "content_scripts": [
     {
       "matches": ["*://stackoverflow.com/*"],
-      "js": ["/assets/js/getSOQuestions.js"]
+      "js": ["/assets/js/getSOElements.js"]
+    },
+    {
+      "matches": ["*://stackoverflow.com/*"],
+      "js": ["/assets/js/getSOCoordinate.js"]
     }
   ],
   "background": {
@@ -16,10 +20,10 @@
   },
   "browser_action": {
     "default_icon": {                    
-      "16": "icon.png",           
-      "24": "icon.png",           
-      "32": "icon.png"            
-    }      
+      "16": "icon.png",
+      "24": "icon.png",
+      "32": "icon.png"
+    }
   },
   "permissions": [
     "activeTab"
