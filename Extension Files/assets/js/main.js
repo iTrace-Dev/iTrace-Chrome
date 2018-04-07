@@ -44,7 +44,11 @@ function translateCoordinates(x, y) {
     }
 }
 
-function getSOElementResult(elements) {
+function getSOElementResult(stringElements) {
+    var parser = new DOMParser();
+    var elements = parser.parseFromString(stringElements, 'text/html');
+    var elements = elements.getElementsByTagName('body');
+
     for (element of elements) {
         if (element.tagName == 'CODE') {
             if (this.questionElement.Body.contains(element)) {
@@ -142,6 +146,7 @@ function receiveQuestion(questionElement) {
     var parser = new DOMParser();
     this.jQuestionElement = $.parseHTML(questionElement);
     this.questionElement = parser.parseFromString(questionElement, 'text/html');
+    this.questionElement = this.questionElement.getElementsByTagName('body');
 
     console.log(this.jQuestionElement);
     console.log(this.questionElement);
@@ -151,27 +156,11 @@ function receiveAnswers(answerElements) {
     var parser = new DOMParser();
     this.jAnswerElements = $.parseHTML(answerElements);
     this.answerElements = parser.parseFromString(answerElements, 'text/html');
+    this.answerElements = this.answerElements.getElementsByTagName('body');
 
     console.log(this.jAnswerElements);
     console.log(this.answerElements);
 }
-
-/*chrome.runtime.onMessageExternal.addListener(function(request, sender, sendResponse) {
-    console.log('message recieved')
-    if (request.type == "question") {
-        var element = request.element;
-        console.log('question element');
-        console.log(element);
-        this.questionElement = element;
-    }
-
-    if (request.type == "answer") {
-        var element = request.element;
-        console.log('answer elements');
-        console.log(element);
-        this.answerElements = element;
-    }
-}.bind(this));*/
 
 // establish the websocket connection
 chrome.browserAction.onClicked.addListener(function (tab) {
