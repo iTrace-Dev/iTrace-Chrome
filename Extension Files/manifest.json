@@ -1,14 +1,10 @@
 {
   "manifest_version": 2,
 
-  "name": "iTrace-Chrome Plguin",
+  "name": "iTrace-Chrome Plugin",
   "description": "Plugin which allows for tracking eyegaze data on webpages in Chrome.",
   "version": "0.0.1",
   "content_scripts": [
-    {
-      "matches": ["*://stackoverflow.com/*"],
-      "js": ["/assets/js/getSOElements.js"]
-    },
     {
       "matches": ["*://stackoverflow.com/*"],
       "js": ["/assets/js/getSOCoordinate.js"]
