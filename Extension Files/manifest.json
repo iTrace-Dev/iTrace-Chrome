@@ -22,7 +22,8 @@
     }
   },
   "permissions": [
-    "activeTab"
+    "activeTab",
+    "downloads"
   ],
   "externally_connectable": {
     "matches": ["*://*.stackoverflow.com/**", "https://stackoverflow.com/*"]

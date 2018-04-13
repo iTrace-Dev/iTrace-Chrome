@@ -44,92 +44,44 @@ function translateCoordinates(x, y) {
     }
 }
 
-/*function getSOElementResult(stringElements) {
-    var parser = new DOMParser();
-    //var elements = parser.parseFromString(stringElements, 'text/html');
-    //var elements = elements.getElementsByTagName('body');
-    var elements = [];
-    for (string of stringElements) {
-        var bodyElement = parser.parseFromString(string.element, 'text/html');
-        bodyElement = bodyElement.getElementsByTagName('body');
-        var element = bodyElement[0].children[string.index];
-        elements.push(element);
-    } 
-
-    for (element of elements) {
-        if (element) {
-            if (element.tagName == 'CODE') {
-                if (this.questionElement[0].contains(element)) {
-                    // question code
-                    console.log('question code');
-                    return 'question code';
-                }
-                for (answer of this.answerElements) {
-                    if (answer[0].contains(element)) {
-                        // answer code
-                        console.log('answer code');
-                        return 'answer code';
-                    }
-                }
-            }
-    
-            if (element.tagName == 'IMG') {
-                if (this.questionElement[0].contains(element)) {
-                    // question code
-                    console.log('question image');
-                    return 'question image';
-                }
-                for (answer of this.answerElements) {
-                    if (answer[0].contains(element)) {
-                        // answer code
-                        console.log('answer image');
-                        return 'answer image';
-                    }
-                }
-            }
-    
-            if (element.classList.contains('post-text')) {
-                if (this.questionElement[0].contains(element)) {
-                    // question code
-                    console.log('question text');
-                    return 'question text';
-                }
-                for (answer of this.answerElements) {
-                    if (answer[0].contains(element)) {
-                        // answer code
-                        console.log('answer text');
-                        return 'answer text';
-                    }
-                }
-            }
-    
-            if (element.classList.contains('post-tag')) {
-                console.log('question-tag');
-                return 'question tag';
-            }
-    
-            if (element.classList.contains('vote')) {
-                if (this.questionElement[0].contains(element)) {
-                    // question code
-                    console.log('question vote');
-                    return 'question vote';
-                }
-                for (answer of this.answerElements) {
-                    if (answer[0].contains(element)) {
-                        // answer code
-                        console.log('answer vote');
-                        return 'answer vote';
-                    }
-                }
-            }
-    
-            if (element.Id == 'question-header') {
-                console.log('question-title');
-                return 'question-title';
-            }
-        }
-    }
-}*/
+function json2xml(o, tab) {
+    var toXml = function(v, name, ind) {
+       var xml = "";
+       if (v instanceof Array) {
+          for (var i=0, n=v.length; i<n; i++)
+             xml += ind + toXml(v[i], name, ind+"\t") + "\n";
+       }
+       else if (typeof(v) == "object") {
+          var hasChild = false;
+          xml += ind + "<" + name;
+          for (var m in v) {
+             if (m.charAt(0) == "@")
+                xml += " " + m.substr(1) + "=\"" + v[m].toString() + "\"";
+             else
+                hasChild = true;
+          }
+          xml += hasChild ? ">" : "/>";
+          if (hasChild) {
+             for (var m in v) {
+                if (m == "#text")
+                   xml += v[m];
+                else if (m == "#cdata")
+                   xml += "<![CDATA[" + v[m] + "]]>";
+                else if (m.charAt(0) != "@")
+                   xml += toXml(v[m], m, ind+"\t");
+             }
+             xml += (xml.charAt(xml.length-1)=="\n"?ind:"") + "</" + name + ">";
+          }
+       }
+       else {
+          xml += ind + "<" + name + ">" + v.toString() +  "</" + name + ">";
+       }
+       return xml;
+    }, xml="";
+    for (var m in o)
+       xml += toXml(o[m], m, "");
+    return tab ? xml.replace(/\t/g, tab) : xml.replace(/\t|\n/g, "");
+ }
 
 function getBZElementResult(elements) {
     for (element of elements) {
@@ -151,37 +103,38 @@ function getBZElementResult(elements) {
    }
 }
 
-/*function receiveQuestion(questionElement) {
-    var parser = new DOMParser();
-    this.questionElement = parser.parseFromString(questionElement, 'text/html');
-    this.questionElement = this.questionElement.getElementsByTagName('body');
-
-    console.log(this.questionElement);
-}
-
-function receiveAnswers(answerElements) {
-    var parser = new DOMParser();
-    //this.jAnswerElements = $.parseHTML(answerElements);
-    //this.answerElements = parser.parseFromString(answerElements, 'text/html');
-    //this.answerElements = this.answerElements.getElementsByTagName('body');
-    var elements = [];
-    for (string of answerElements) {
-        var element = parser.parseFromString(string, 'text/html');
-        element = element.getElementsByTagName('body');
-        elements.push(element);
-    }
-    
-    this.answerElements = elements;
-
-    console.log(this.answerElements);
-}*/
-
 function printSOResults(response) {
     if (response) {
+        this.sessionData.push({ x: response.x, y: response.y, result: response.result });
         var printString = 'x: ' + response.x + ', y: ' + response.y + ', result: ' + response.result;
         console.log(printString);
     }
 }
+
+function writeXMLData() {
+    this.websocket.close();
+
+    // call method to parse JSON to xml string, then write to file
+    var xmlString = json2xml(this.sessionData);
+
+    // create blob with url for chrome.downloads api
+    var xmlBlob = new Blob([xmlString], { type: "text/xml" });
+    var url = URL.createObjectURL(xmlBlob);
+
+    // download file
+    // I think this should just download to the default downloads folder?
+    // can change this if needed
+    chrome.downloads.download({
+        url: url,
+    });
+
+    this.isActive = false;
+
+    chrome.browserAction.onClicked.removeListener(this.writeXMLData);
+}
+
+this.isActive = false;
+this.sessionData = [];
 
 // establish the websocket connection
 chrome.browserAction.onClicked.addListener(function (tab) {
@@ -209,15 +162,15 @@ chrome.browserAction.onClicked.addListener(function (tab) {
     };
     var url = tab.url;
     var id = tab.id;
-    console.log(url);
 
-    var urlRegex = /^https?:\/\/(?:[^./?#]+\.)?stackoverflow\.com/;
-
-    var websocket = new WebSocket('ws://localhost:7007');
+    if (!this.websocket) {
+        this.websocket = new WebSocket('ws://localhost:7007');
+    }
 
     // listen for eye gaze data coming from the server
-    websocket.onmessage = function (e) {
+    this.websocket.onmessage = function (e) {
         // deal with incoming eyegaze data
+
         var eyeGazeData = e.data;
         var timeStamp = eyeGazeData.substring(0, eyeGazeData.indexOf(','));
 
@@ -250,4 +203,6 @@ chrome.browserAction.onClicked.addListener(function (tab) {
             }.bind(this));
         }
     }.bind(this);
+
+    chrome.browserAction.onClicked.addListener(this.writeXMLData.bind(this));
 }.bind(this));
