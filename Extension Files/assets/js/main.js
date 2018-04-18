@@ -56,19 +56,19 @@ function json2xml(o, tab) {
           xml += ind + "<" + name;
           for (var m in v) {
              if (m.charAt(0) == "@")
-                xml += " " + m.substr(1) + "=\"" + v[m].toString() + "\"";
+                xml += " " + m.substr(1) + "=\"" + v[m].toString();
              else
                 hasChild = true;
           }
-          xml += hasChild ? ">" : "/>";
+          xml += hasChild ? ">"  + "\n" : "/>"  + "\n";
           if (hasChild) {
              for (var m in v) {
                 if (m == "#text")
-                   xml += v[m];
+                   xml += v[m] + "\n";
                 else if (m == "#cdata")
                    xml += "<![CDATA[" + v[m] + "]]>";
                 else if (m.charAt(0) != "@")
-                   xml += toXml(v[m], m, ind+"\t");
+                   xml += toXml(v[m], m, ind+"\t") + "\n";
              }
              xml += (xml.charAt(xml.length-1)=="\n"?ind:"") + "</" + name + ">";
           }
@@ -79,8 +79,8 @@ function json2xml(o, tab) {
        return xml;
     }, xml="";
     for (var m in o)
-       xml += toXml(o[m], m, "");
-    return tab ? xml.replace(/\t/g, tab) : xml.replace(/\t|\n/g, "");
+       xml += toXml(o[m], m, "") + "\n";
+    return xml;
  }
 
 function getBZElementResult(elements) {
@@ -103,9 +103,9 @@ function getBZElementResult(elements) {
    }
 }
 
-function printSOResults(response) {
+function printResults(response) {
     if (response) {
-        this.sessionData.push({ x: response.x, y: response.y, result: response.result });
+        this.sessionData.push({ timestamp: response.time, x: response.x, y: response.y, result: response.result });
         var printString = 'x: ' + response.x + ', y: ' + response.y + ', result: ' + response.result;
         console.log(printString);
     }
@@ -130,79 +130,88 @@ function writeXMLData() {
 
     this.isActive = false;
 
-    chrome.browserAction.onClicked.removeListener(this.writeXMLData);
+    chrome.browserAction.onClicked.removeListener(this.writeXMLData.bind(this));
+    chrome.browserAction.onClicked.addListener(this.startSession.bind(this));
+    this.sessionData = [];
 }
 
-this.isActive = false;
-this.sessionData = [];
+function webSocketHandler(e) {
+    // deal with incoming eyegaze data
 
-// establish the websocket connection
-chrome.browserAction.onClicked.addListener(function (tab) {
+    var eyeGazeData = e.data;
+    var timeStamp = eyeGazeData.substring(0, eyeGazeData.indexOf(','));
+
+    var coordString = eyeGazeData.substring(eyeGazeData.indexOf(',') + 1);
+
+    var x = coordString.substring(0                           , coordString.indexOf(','));
+    var y = coordString.substring(coordString.indexOf(',') + 1, coordString.length      );
+
+    // parse values
+    x = parseInt(x);
+    y = parseInt(y);
+
+    // get translated coordinates
+    var coords = translateCoordinates(x, y);
+
+    if (!coords) {
+        // user is not looking in the html viewport
+    } else {
+        // user is looking in the html viewport
+        // need to check which website the user is looking at
+        chrome.tabs.query({ 'active': true }, function (tabs) {
+            var url = this.tab.url;
+            if (url.includes('stackoverflow.com/questions/')) {
+                chrome.tabs.sendMessage(this.id, { text: 'get_so_coordinate', x: coords.x, y: coords.y, time: timeStamp  }, this.printResults );
+            }
+            if (url.includes('https://bug')) { // NOTE: This include may be incorect, will need to do some more research
+                chrome.tabs.sendMessage(this.id, { text: 'get_bz_coordinate', x: coords.x, y: coords.y, time: timeStamp  }, this.printResults );
+            }
+        }.bind(this));
+    }
+}
+
+function getBrowserX(result) {
+    console.log('browserX');
+    console.log(result);
+    this.browserX = result[0];
+}
+
+function getBrowserY(result) {
+    console.log('browserY');
+    console.log(result);
+    this.browserY = result[0];
+}
+
+function startSession(tab) {
+    this.tab = tab;
     console.log('START SESSION');
 
     chrome.tabs.executeScript({
         'code': 'window.innerHeight'
-    }, function (result) {
-        console.log('browserX');
-        console.log(result);
-        this.browserX = result[0];
-    }.bind(this));
+    }, this.getBrowserX.bind(this));
 
     chrome.tabs.executeScript({
         'code': 'window.innerWidth'
-    }, function (result) {
-        console.log('browserY');
-        console.log(result);
-        this.browserY = result[0];
-    }.bind(this));
+    }, this.getBrowserY.bind(this));
 
     var queryInfo = {
         active: true,
         currentWindow: true
     };
     var url = tab.url;
-    var id = tab.id;
+    this.id = tab.id;
 
-    if (!this.websocket) {
-        this.websocket = new WebSocket('ws://localhost:7007');
-    }
+    this.websocket = new WebSocket('ws://localhost:7007');
 
     // listen for eye gaze data coming from the server
-    this.websocket.onmessage = function (e) {
-        // deal with incoming eyegaze data
+    this.websocket.onmessage = this.webSocketHandler.bind(this);
 
-        var eyeGazeData = e.data;
-        var timeStamp = eyeGazeData.substring(0, eyeGazeData.indexOf(','));
-
-        var coordString = eyeGazeData.substring(eyeGazeData.indexOf(',') + 1);
-
-        var x = coordString.substring(0                           , coordString.indexOf(','));
-        var y = coordString.substring(coordString.indexOf(',') + 1, coordString.length      );
-
-        // parse values
-        x = parseInt(x);
-        y = parseInt(y);
-
-        // get translated coordinates
-        var coords = translateCoordinates(x, y);
-
-        if (!coords) {
-            // user is not looking in the html viewport
-        } else {
-            // user is looking in the html viewport
-            // need to check which website the user is looking at
-            chrome.tabs.query({ 'active': true }, function (tabs) {
-                var url = tab.url;
-                this.currentTab = tab;
-                if (url.includes('stackoverflow.com/questions/')) {
-                    chrome.tabs.sendMessage(id, { text: 'get_so_coordinate', x: coords.x, y: coords.y  }, this.printSOResults );
-                }
-                if (url.includes('bugzilla')) { // NOTE: This include may be incorect, will need to do some more research
-                    
-                }
-            }.bind(this));
-        }
-    }.bind(this);
-
+    chrome.browserAction.onClicked.removeListener(this.startSession.bind(this));
     chrome.browserAction.onClicked.addListener(this.writeXMLData.bind(this));
-}.bind(this));
+}
+
+this.isActive = false;
+this.sessionData = [];
+
+// add initial listener for the broswerAction click
+chrome.browserAction.onClicked.addListener(this.startSession.bind(this));

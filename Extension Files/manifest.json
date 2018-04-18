@@ -8,6 +8,10 @@
     {
       "matches": ["*://stackoverflow.com/*"],
       "js": ["/assets/js/getSOCoordinate.js"]
+    },
+    {
+      "matches": ["*://bugs.eclipse.org/*", "*://bugzilla.mozilla.org/*", "*://bugzilla.kernel.org/*", "*://bz.apache.org/*"],
+      "js": ["/assets/js/getBZCoordinate.js"]
     }
   ],
   "background": {
