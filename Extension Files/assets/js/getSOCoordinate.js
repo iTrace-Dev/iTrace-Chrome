@@ -12,7 +12,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                     // question code
                     console.log('question code');
                     sentResult = true;
-                    sendResponse({ result: 'question code', x: msg.x, y: msg.y, time: msg.time });
+                    sendResponse({ result: 'question code', x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
                     return;
                 }
                 for (answer of answerElements) {
@@ -20,7 +20,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                         // answer code
                         console.log('answer code');
                         sentResult = true;
-                        sendResponse({ result: 'answer code', x: msg.x, y: msg.y, time: msg.time });
+                        sendResponse({ result: 'answer code', x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
                         return;
                     }
                 }
@@ -31,7 +31,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                     // question code
                     console.log('question image');
                     sentResult = true;
-                    sendResponse({ result: 'question image', x: msg.x, y: msg.y, time: msg.time });
+                    sendResponse({ result: 'question image', x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
                     return;
                 }
                 for (answer of answerElements) {
@@ -39,7 +39,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                         // answer code
                         console.log('answer image');
                         sentResult = true;
-                        sendResponse({ result: 'answer image', x: msg.x, y: msg.y, time: msg.time });
+                        sendResponse({ result: 'answer image', x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
                         return;
                     }
                 }
@@ -50,7 +50,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                     // question code
                     console.log('question text');
                     sentResult = true;
-                    sendResponse({ result: 'question text', x: msg.x, y: msg.y, time: msg.time });
+                    sendResponse({ result: 'question text', x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
                     return;
                 }
                 for (answer of answerElements) {
@@ -58,7 +58,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                         // answer code
                         console.log('answer text');
                         sentResult = true;
-                        sendResponse({ result: 'answer text', x: msg.x, y: msg.y, time: msg.time });
+                        sendResponse({ result: 'answer text', x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
                         return;
                     }
                 }
@@ -67,7 +67,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
             if (element.classList.contains('post-tag')) {
                 console.log('question-tag');
                 sentResult = true;
-                sendResponse({ result: 'question tag', x: msg.x, y: msg.y, time: msg.time });
+                sendResponse({ result: 'question tag', x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
                 return;
             }
     
@@ -76,7 +76,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                     // question code
                     console.log('question vote');
                     sentResult = true;
-                    sendResponse({ result: 'question vote', x: msg.x, y: msg.y, time: msg.time });
+                    sendResponse({ result: 'question vote', x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
                     return;
                 }
                 for (answer of answerElements) {
@@ -84,7 +84,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                         // answer code
                         console.log('answer vote');
                         sentResult = true;
-                        sendResponse({ result: 'answer vote', x: msg.x, y: msg.y, time: msg.time });
+                        sendResponse({ result: 'answer vote', x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
                         return;
                     }
                 }
@@ -93,7 +93,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
             if (element.Id == 'question-header') {
                 console.log('question-title');
                 sentResult = true;
-                sendResponse({ result: 'question-title', x: msg.x, y: msg.y, time: msg.time });
+                sendResponse({ result: 'question-title', x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
                 return;
             }
         }

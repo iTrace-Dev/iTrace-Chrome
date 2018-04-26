@@ -8,28 +8,28 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
         if (element.classList.contains('bz_show_bug_column_1')) {
             console.log('question info - 1');
             sentResult = true;
-            sendResponse({ result: 'question info - 1', x: msg.x, y: msg.y, time: msg.time });
+            sendResponse({ result: 'question info - 1', x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
             return;
         }
 
         if (element.classList.contains('bz_show_bug_column_2')) {
             console.log('question info - 1');
             sentResult = true;
-            sendResponse({ result: 'question info - 2', x: msg.x, y: msg.y, time: msg.time });
+            sendResponse({ result: 'question info - 2', x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
             return;
         }
  
         if (element.classList.contains('bz_comment')) {
             console.log('answer info');
             sentResult = true;
-            sendResponse({ result: 'answer info', x: msg.x, y: msg.y, time: msg.time });
+            sendResponse({ result: 'answer info', x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
             return;
         }
  
         if (element.tagName == 'TR') {
             console.log('attachment info');
             sentResult = true;
-            sendResponse({ result: 'attachment info', x: msg.x, y: msg.y, time: msg.time });
+            sendResponse({ result: 'attachment info', x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
             return;
         }
     }

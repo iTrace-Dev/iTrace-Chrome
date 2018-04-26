@@ -68,7 +68,7 @@ function json2xml(o, tab) {
                 else if (m == "#cdata")
                    xml += "<![CDATA[" + v[m] + "]]>";
                 else if (m.charAt(0) != "@")
-                   xml += toXml(v[m], m, ind+"\t") + "\n";
+                   xml += toXml(v[m], m, "gaze\t") + "\n";
              }
              xml += (xml.charAt(xml.length-1)=="\n"?ind:"") + "</" + name + ">";
           }
@@ -83,29 +83,9 @@ function json2xml(o, tab) {
     return xml;
  }
 
-function getBZElementResult(elements) {
-    for (element of elements) {
-       if (element.classList.contains('bz_show_bug_column')) {
-           console.log('question info - 1');
-       }
-
-       if (element.classList.contains('bz_alias_short_desc_container')) {
-           console.log('question title');
-       }
-
-       if (element.classList.contains('bz_comment_text')) {
-           console.log('answer info');
-       }
-
-       if (element.classList.contains('bz_attach_extra_info')) {
-           console.log('attachment info');
-       }
-   }
-}
-
 function printResults(response) {
     if (response) {
-        this.sessionData.push({ timestamp: response.time, x: response.x, y: response.y, result: response.result });
+        this.sessionData.push({ timestamp: response.time, x: response.x, y: response.y, response: response.result, tagname: response.tagname, id: response.id, url: response.url });
         var printString = 'x: ' + response.x + ', y: ' + response.y + ', result: ' + response.result;
         console.log(printString);
     }
@@ -122,8 +102,8 @@ function writeXMLData() {
     var url = URL.createObjectURL(xmlBlob);
 
     // download file
-    // I think this should just download to the default downloads folder?
-    // can change this if needed
+    // currently defaults to downloading to the device's download folder
+    // can be changed to any path in local storage
     chrome.downloads.download({
         url: url,
     });
@@ -161,10 +141,10 @@ function webSocketHandler(e) {
         chrome.tabs.query({ 'active': true }, function (tabs) {
             var url = this.tab.url;
             if (url.includes('stackoverflow.com/questions/')) {
-                chrome.tabs.sendMessage(this.id, { text: 'get_so_coordinate', x: coords.x, y: coords.y, time: timeStamp  }, this.printResults );
+                chrome.tabs.sendMessage(this.id, { text: 'get_so_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url  }, this.printResults );
             }
             if (url.includes('https://bug')) { // NOTE: This include may be incorect, will need to do some more research
-                chrome.tabs.sendMessage(this.id, { text: 'get_bz_coordinate', x: coords.x, y: coords.y, time: timeStamp  }, this.printResults );
+                chrome.tabs.sendMessage(this.id, { text: 'get_bz_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url  }, this.printResults );
             }
         }.bind(this));
     }
