@@ -119,9 +119,14 @@ function webSocketHandler(e) {
     // deal with incoming eyegaze data
 
     var eyeGazeData = e.data;
-    var timeStamp = eyeGazeData.substring(0, eyeGazeData.indexOf(','));
-
-    var coordString = eyeGazeData.substring(eyeGazeData.indexOf(',') + 1);
+	
+	if (eyeGazeData.substring(0, eyeGazeData.indexOf(',')) == "session"){
+		var tmp = eyeGazeData.substring(eyeGazeData.indexOf(',') + 1);
+		return;
+	} 
+    var timeStampAndCoords = eyeGazeData.substring(eyeGazeData.indexOf(',') + 1);
+	var timeStamp = timeStampAndCoords.substring(0, eyeGazeData.indexOf(','));
+    var coordString = timeStampAndCoords.substring(eyeGazeData.indexOf(',') + 1);
 
     var x = coordString.substring(0                           , coordString.indexOf(','));
     var y = coordString.substring(coordString.indexOf(',') + 1, coordString.length      );
