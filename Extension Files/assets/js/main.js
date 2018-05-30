@@ -151,6 +151,9 @@ function webSocketHandler(e) {
             if (url.includes('https://bug')) { // NOTE: This include may be incorect, will need to do some more research
                 chrome.tabs.sendMessage(this.id, { text: 'get_bz_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url  }, this.printResults );
             }
+			if (url.includes('amiga')) {
+				chrome.tabs.sendMessage(this.id, { text: 'get_stefik_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url }, this.printResults);
+			}
         }.bind(this));
     }
 }
