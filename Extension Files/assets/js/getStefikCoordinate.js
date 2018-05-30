@@ -10,9 +10,12 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
 			return;
 		}
 		if (element.classList.contains('tab-pane form-control display-area codeSample active')){
-			console.log('Code sample');
-			sentResult = true;
-			sendResponse({ result: 'code sample', x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
+			if (element.classList.contains('sampleline')){
+				console.log('code sample');
+				sentResult = true;
+				sendResponse({ result: 'code sample', x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
+				
+			}
 			return;
 		}
 		if (element.classList.contains('col-lg-6')){
