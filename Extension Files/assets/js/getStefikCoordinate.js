@@ -9,16 +9,13 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
 			sendResponse({ result: 'task info', x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
 			return;
 		}
-		if (element.classList.contains('tab-pane form-control display-area codeSample active')){
-			if (element.classList.contains('sampleline')){
-				console.log('code sample');
-				sentResult = true;
-				sendResponse({ result: 'code sample', x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
-				
-			}
+		if (element.classList.contains('sampleline')){
+			console.log('code sample');
+			sentResult = true;
+			sendResponse({ result: 'code sample', x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
 			return;
 		}
-		if (element.classList.contains('col-lg-6')){
+		if (element.classList.contains('inputline')){
 			console.log('practice area');
 			sentResult = true;
 			sendResponse({ result: 'Practice area', x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
