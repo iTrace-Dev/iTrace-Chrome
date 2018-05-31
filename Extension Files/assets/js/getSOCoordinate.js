@@ -1,4 +1,4 @@
-class// Listen for messages
+// Listen for messages
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     var questionElement = document.getElementById('question');
     var answerElements = document.getElementById('answers').children;

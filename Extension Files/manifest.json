@@ -6,7 +6,7 @@
   "version": "0.0.1",
   "content_scripts": [
     {
-      "matches": ["*://stackoverflow.com/*"],
+      "matches": ["*://stackoverflow.com/questions/*"],
       "js": ["/assets/js/getSOCoordinate.js"]
     },
     {
@@ -16,6 +16,11 @@
 	{
 		"matches": ["*://*.cs.unlv.edu/*"],
 		"js": ["/assets/js/getStefikCoordinate.js"]
+	},
+	{
+		"matches": ["*://stackoverflow.com/*"],
+      "js": ["/assets/js/getSOSearchCoordinate.js"]
+	
 	}
   ],
   "background": {
