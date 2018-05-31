@@ -1,4 +1,4 @@
-// Listen for messages
+class// Listen for messages
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     var questionElement = document.getElementById('question');
     var answerElements = document.getElementById('answers').children;
@@ -90,7 +90,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 }
             }
     
-            if (element.Id == 'question-header') {
+            if (element.id == 'question-header') {
                 console.log('question-title');
                 sentResult = true;
                 sendResponse({ result: 'question-title', x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });

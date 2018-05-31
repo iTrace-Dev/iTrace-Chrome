@@ -16,10 +16,16 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
 			return;
 		}
 		if (element.classList.contains('inputline')){
-			console.log('practice area');
+			console.log('solution area');
 			sentResult = true;
-			sendResponse({ result: 'Practice area', x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
+			sendResponse({ result: 'solution area', x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
 			return;
+		}
+		if (element.id == 'task-timer'){
+			console.log('timer');
+			sentResult = true;
+			sendResponse({ result: 'timer', x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
+			return;		
 		}
 	}
 	if (!sentResult) {

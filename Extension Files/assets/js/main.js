@@ -120,7 +120,7 @@ function webSocketHandler(e) {
 
     var eyeGazeData = e.data;
 	
-	if (eyeGazeData.substring(0, eyeGazeData.indexOf(',')) == "session"){
+	if (eyeGazeData.substring(0, eyeGazeData.indexOf(',')) == 'session'){
 		var tmp = eyeGazeData.substring(eyeGazeData.indexOf(',') + 1);
 		return;
 	} 
