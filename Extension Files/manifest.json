@@ -18,9 +18,8 @@
 		"js": ["/assets/js/getStefikCoordinate.js"]
 	},
 	{
-		"matches": ["*://stackoverflow.com/*"],
-      "js": ["/assets/js/getSOSearchCoordinate.js"]
-	
+		"matches": ["https://stackoverflow.com/*"],
+		"js": ["/assets/js/getSearchCoordinate.js"]
 	}
   ],
   "background": {

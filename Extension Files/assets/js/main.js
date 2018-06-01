@@ -155,8 +155,8 @@ function webSocketHandler(e) {
 				chrome.tabs.sendMessage(this.id, { text: 'get_stefik_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url }, this.printResults);
 			}
 			if (url.includes('stackoverflow.com/search')) {
-                chrome.tabs.sendMessage(this.id, { text: 'get_so_search_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url  }, this.printResults );
-            }
+				chrome.tabs.sendMessage(this.id, { text: 'get_search_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url }, this.printResults);
+			}			
         }.bind(this));
     }
 }
