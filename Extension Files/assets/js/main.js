@@ -56,7 +56,7 @@ function json2xml(o, tab) {
           xml += ind + "<" + name;
           for (var m in v) {
              if (m.charAt(0) == "@")
-                xml += " " + m.substr(1) + "=\"" + v[m].toString();
+                xml += " " + m.substr(1) + "=\"" + String(v[m]);
              else
                 hasChild = true;
           }
@@ -74,7 +74,7 @@ function json2xml(o, tab) {
           }
        }
        else {
-          xml += ind + "<" + name + ">" + v.toString() +  "</" + name + ">";
+          xml += ind + "<" + name + ">" + String(v) +  "</" + name + ">";
        }
        return xml;
     }, xml="";
@@ -156,7 +156,10 @@ function webSocketHandler(e) {
 			}
 			if (url.includes('stackoverflow.com/search')) {
 				chrome.tabs.sendMessage(this.id, { text: 'get_search_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url }, this.printResults);
-			}			
+			}	
+			if (url.includes('google.com')){
+				chrome.tabs.sendMessage(this.id, { text: 'get_google_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url }, this.printResults);
+			}
         }.bind(this));
     }
 }

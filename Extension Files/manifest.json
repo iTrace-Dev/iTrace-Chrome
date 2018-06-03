@@ -20,6 +20,10 @@
 	{
 		"matches": ["https://stackoverflow.com/*"],
 		"js": ["/assets/js/getSearchCoordinate.js"]
+	},
+	{
+		"matches": ["https://*.google.com/*"],
+		"js": ["/assets/js/getGoogleCoordinate.js"]
 	}
   ],
   "background": {
