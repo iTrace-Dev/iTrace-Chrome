@@ -90,7 +90,7 @@ function printResults(response) {
         console.log(printString);
     }
 }
-
+var fileLocation = "";
 function writeXMLData() {
     this.websocket.close();
 
@@ -106,6 +106,7 @@ function writeXMLData() {
     // can be changed to any path in local storage
     chrome.downloads.download({
         url: url,
+		filename: "chrome_plugin_data.xml"
     });
 
     this.isActive = false;
@@ -115,6 +116,7 @@ function writeXMLData() {
     this.sessionData = [];
 }
 
+
 function webSocketHandler(e) {
     // deal with incoming eyegaze data
 
@@ -122,6 +124,7 @@ function webSocketHandler(e) {
 	
 	if (eyeGazeData.substring(0, eyeGazeData.indexOf(',')) == 'session'){
 		var tmp = eyeGazeData.substring(eyeGazeData.indexOf(',') + 1);
+		fileLocation = tmp;
 		return;
 	} 
     var timeStampAndCoords = eyeGazeData.substring(eyeGazeData.indexOf(',') + 1);
