@@ -85,9 +85,9 @@ function json2xml(o, tab) {
 
 function printResults(response) {
     if (response) {
+		var printString = 'x: ' + response.x + ', y: ' + response.y + ', result: ' + response.result + ', url: ' + response.url;
+		//console.log(printString);
         this.sessionData.push({ timestamp: response.time, x: response.x, y: response.y, response: response.result, tagname: response.tagname, id: response.id, url: response.url });
-        var printString = 'x: ' + response.x + ', y: ' + response.y + ', result: ' + response.result;
-        console.log(printString);
     }
 }
 var fileLocation = "";
@@ -147,7 +147,7 @@ function webSocketHandler(e) {
         // user is looking in the html viewport
         // need to check which website the user is looking at
         chrome.tabs.query({ 'active': true }, function (tabs) {
-            var url = this.tab.url;
+			var url = this.tab.url;
             if (url.includes('stackoverflow.com/questions/')) {
                 chrome.tabs.sendMessage(this.id, { text: 'get_so_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url  }, this.printResults );
             }
