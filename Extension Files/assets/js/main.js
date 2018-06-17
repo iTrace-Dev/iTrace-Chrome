@@ -90,6 +90,21 @@ function printResults(response) {
         this.sessionData.push({ timestamp: response.time, x: response.x, y: response.y, response: response.result, tagname: response.tagname, id: response.id, url: response.url });
     }
 }
+
+function getTokens(x, y) {
+	if (response) {
+		var elements = document.elementsFromPoint(x, y);
+		for (element of elements) {
+			var textElement = document.getElementsByClassName("sampleLine");
+			for (var i = 0; i < textElement.length; i++) {
+				var text = textElement[i].innerText;
+				console.log(text);
+			}		
+		}		
+	}
+}
+
+
 var fileLocation = "";
 function writeXMLData() {
     this.websocket.close();
