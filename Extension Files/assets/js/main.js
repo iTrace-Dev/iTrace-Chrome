@@ -99,8 +99,15 @@ function getTokens(x, y) {
 			for (var i = 0; i < textElement.length; i++) {
 				var text = textElement[i].innerText;
 				console.log(text);
-			}		
-		}		
+			}
+			var boundingRect = element.getBoundingClientRect();
+			if (boundingRect.top == y) {
+				for (var i = 0; i < textElement.length; i++) {
+					var text = textElement[i].innerText;
+					console.log(text);
+				}
+			}
+		}
 	}
 }
 
