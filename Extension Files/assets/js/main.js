@@ -117,14 +117,14 @@ function findGazedWord(parentElement, x, y) {
         return null;
     }
     var range = document.createRange();
-    var words = parentElt.textContent.split(' ');
+    var words = parentElement.textContent.split(' ');
     var start = 0;
     var end = 0;
     for (var i = 0; i < words.length; i++) {
         var word = words[i];
         end = start+word.length;
-        range.setStart(parentElt, start);
-        range.setEnd(parentElt, end);
+        range.setStart(parentElement, start);
+        range.setEnd(parentElement, end);
         // not getBoundingClientRect as word could wrap
         var rects = range.getClientRects();
         var clickedRect = isClickInRects(rects);
