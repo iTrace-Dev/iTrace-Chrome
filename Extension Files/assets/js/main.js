@@ -111,6 +111,40 @@ function getTokens(x, y) {
 	}
 }
 
+function findGazedWord(parentElement, x, y) {
+    if (parentElement.nodeName !== '#text') {
+        console.log('didn\'t click on text node');
+        return null;
+    }
+    var range = document.createRange();
+    var words = parentElt.textContent.split(' ');
+    var start = 0;
+    var end = 0;
+    for (var i = 0; i < words.length; i++) {
+        var word = words[i];
+        end = start+word.length;
+        range.setStart(parentElt, start);
+        range.setEnd(parentElt, end);
+        // not getBoundingClientRect as word could wrap
+        var rects = range.getClientRects();
+        var clickedRect = isClickInRects(rects);
+        if (clickedRect) {
+            return [word, start, clickedRect];
+        }
+        start = end + 1;
+    }
+    
+    function isClickInRects(rects) {
+        for (var i = 0; i < rects.length; ++i) {
+            var r = rects[i]
+            if (r.left<x && r.right>x && r.top<y && r.bottom>y) {            
+                return r;
+            }
+        }
+        return false;
+    }
+    return null;
+}
 
 var fileLocation = "";
 function writeXMLData() {
