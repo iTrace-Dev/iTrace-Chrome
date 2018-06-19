@@ -84,11 +84,16 @@ function json2xml(o, tab) {
  }
 
 function printResults(response) {
-    if (response) {
-		var printString = 'x: ' + response.x + ', y: ' + response.y + ', result: ' + response.result + ', url: ' + response.url;
-		//console.log(printString);
-        this.sessionData.push({ timestamp: response.time, x: response.x, y: response.y, response: response.result, tagname: response.tagname, id: response.id, url: response.url });
-    }
+	chrome.tabs.getSelected(null,function(tab) {
+		this.currentUrl = tab.url;
+	}.bind(this));
+	var printString = 'x: ' + response.x + ', y: ' + response.y + ', result: ' + response.result + ', url: ' + this.currentUrl;
+    this.sessionData.push({ timestamp: response.time, x: response.x, y: response.y, response: response.result, tagname: response.tagname, id: response.id, url: this.currentUrl });
+    /*if (response) {
+		console.log(currentUrl);
+		var printString = 'x: ' + response.x + ', y: ' + response.y + ', result: ' + response.result + ', url: ' + currentUrl;
+        this.sessionData.push({ timestamp: response.time, x: response.x, y: response.y, response: response.result, tagname: response.tagname, id: response.id, url: currentUrl });
+    }*/
 }
 
 function getTokens(x, y) {
@@ -125,7 +130,6 @@ function findGazedWord(parentElement, x, y) {
         end = start+word.length;
         range.setStart(parentElement, start);
         range.setEnd(parentElement, end);
-        // not getBoundingClientRect as word could wrap
         var rects = range.getClientRects();
         var clickedRect = isClickInRects(rects);
         if (clickedRect) {
@@ -134,7 +138,7 @@ function findGazedWord(parentElement, x, y) {
         start = end + 1;
     }
     
-    function isClickInRects(rects) {
+    function isGazeInRects(rects) {
         for (var i = 0; i < rects.length; ++i) {
             var r = rects[i]
             if (r.left<x && r.right>x && r.top<y && r.bottom>y) {            
@@ -251,6 +255,7 @@ function startSession(tab) {
         active: true,
         currentWindow: true
     };
+	
     var url = tab.url;
     this.id = tab.id;
 
@@ -265,6 +270,7 @@ function startSession(tab) {
 
 this.isActive = false;
 this.sessionData = [];
+this.currentUrl = "";
 
 // add initial listener for the broswerAction click
 chrome.browserAction.onClicked.addListener(this.startSession.bind(this));
