@@ -125,6 +125,28 @@ function findGazedWord(parentElement, x, y) {
     var words = parentElement.textContent.split(' ');
     var start = 0;
     var end = 0;
+	var childPos = obj.offset();
+	var parentPos = obj.parent().offset();
+	var childOffset = {
+		top: childPos.top - parentPos.top,
+		left: childPos.left - parentPos.left
+	}
+	var elm = document.querySelector('span');
+	console.log(elm.offsetLeft, elm.offsetTop);
+	function getWindowRelativeOffset(parentWindow, elem) {
+		var offset = {
+			left : 0,
+			top : 0
+		};
+		offset.left = elem.getBoundingClientRect().left;
+		offset.top = elem.getBoundingClientRect().top;
+		var childWindow = elem.document.frames.window;
+		while (childWindow != parentWindow) {
+			offset.left = offset.left + childWindow.frameElement.getBoundingClientRect().left;
+			offset.top = offset.top + childWindow.frameElement.getBoundingClientRect().top;
+			childWindow = childWindow.parent;
+		}
+	}
     for (var i = 0; i < words.length; i++) {
         var word = words[i];
         end = start+word.length;
@@ -146,6 +168,7 @@ function findGazedWord(parentElement, x, y) {
             }
         }
         return false;
+		
     }
     return null;
 }
