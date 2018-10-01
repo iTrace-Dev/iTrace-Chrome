@@ -42,32 +42,33 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
 		if (element.classList.contains('container-fluid')){
 			console.log('task info');
 			sentResult = true;
-			sendResponse({ result: 'task info', x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
+			sendResponse({ result: 'task info', line: null, word: null, x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
 			return;
 		}
 		if (element.classList.contains('sampleline')){
-			console.log(element.tagName.nodeName);
 			var gazed = findToken(element.childNodes[0], msg.x, msg.y);	
 			if (gazed) {
 				var word = gazed[0];
 				var start = gazed[1]; //offset
 				var r = gazed[2];
+				// ID = smpA1-line-XX
+				var lineNumber = parseInt(element.id.split('-')[2]);
 				console.log('code sample');
 				sentResult = true;
-				sendResponse({ result: word, x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
+				sendResponse({ result: 'code sample', line:lineNumber, word:word, x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
 				return;
 			}
 		}
 		if (element.classList.contains('inputline')){
 			console.log('solution area');
 			sentResult = true;
-			sendResponse({ result: 'solution area', x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
+			sendResponse({ result: 'solution area', line: null, word: null, x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
 			return;
 		}
 		if (element.id == 'task-timer'){
 			console.log('timer');
 			sentResult = true;
-			sendResponse({ result: 'timer', x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
+			sendResponse({ result: 'timer', line: null, word: null, x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
 			return;		
 		}
 	}

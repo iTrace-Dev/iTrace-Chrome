@@ -60,7 +60,7 @@ function json2xml(o, tab) {
              else
                 hasChild = true;
           }
-          xml += hasChild ? ">"  + "\n" : "/>"  + "\n";
+          xml += hasChild ? ">"  + "\n" : "/>";
           if (hasChild) {
              for (var m in v) {
                 if (m == "#text")
@@ -68,7 +68,7 @@ function json2xml(o, tab) {
                 else if (m == "#cdata")
                    xml += "<![CDATA[" + v[m] + "]]>";
                 else if (m.charAt(0) != "@")
-                   xml += toXml(v[m], m, "gaze\t") + "\n";
+                   xml += toXml(v[m], m, "\t") + "\n";
              }
              xml += (xml.charAt(xml.length-1)=="\n"?ind:"") + "</" + name + ">";
           }
@@ -86,9 +86,13 @@ function json2xml(o, tab) {
 function printResults(response) {
 	chrome.tabs.getSelected(null,function(tab) {
 		this.currentUrl = tab.url;
-	}.bind(this));
+    }.bind(this));
+    if(response == null) {
+        // user is looking off screen
+        return;
+    }
 	var printString = 'x: ' + response.x + ', y: ' + response.y + ', result: ' + response.result + ', url: ' + this.currentUrl;
-    this.sessionData.push({ timestamp: response.time, x: response.x, y: response.y, response: response.result, tagname: response.tagname, id: response.id, url: this.currentUrl });
+    this.sessionData.push({ timestamp: response.time, x: response.x, y: response.y, area: response.result, line: response.line, word: response.word, tagname: response.tagname, id: response.id, url: this.currentUrl });
     /*if (response) {
 		console.log(currentUrl);
 		var printString = 'x: ' + response.x + ', y: ' + response.y + ', result: ' + response.result + ', url: ' + currentUrl;
@@ -147,7 +151,7 @@ function webSocketHandler(e) {
     // get translated coordinates
     var coords = translateCoordinates(x, y);
 
-    if (!coords) {
+    if (!coords || isNaN(x) || isNaN(y)) {
         // user is not looking in the html viewport
     } else {
         // user is looking in the html viewport
