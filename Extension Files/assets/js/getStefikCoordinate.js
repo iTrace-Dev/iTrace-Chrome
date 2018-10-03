@@ -1,42 +1,46 @@
+var iTraceEventTime = null;
+
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
 	var elements = document.elementsFromPoint(msg.x, msg.y);
 
+	iTraceEventTime = msg.time;
+	
     var sentResult = false;
 	
 	function findToken(parentElt, x, y) {
-	console.log(parentElt.nodeName);
-    if (parentElt.nodeName !== '#text') {
-        console.log('didn\'t look on text node');
-        return null;
-    }
-    var range = document.createRange();
-    var words = parentElt.textContent.split(' ');
-    var start = 0;
-    var end = 0;
-    for (var i = 0; i < words.length; i++) {
-        var word = words[i];
-        end = start+word.length;
-        range.setStart(parentElt, start);
-        range.setEnd(parentElt, end);
-        // not getBoundingClientRect as word could wrap
-        var rects = range.getClientRects();
-        var clickedRect = isGazeInRects(rects);
-        if (clickedRect) {
-            return [word, start, clickedRect];
-        }
-        start = end + 1;
-    }
-    
-    function isGazeInRects(rects) {
-        for (var i = 0; i < rects.length; ++i) {
-            var r = rects[i]
-            if (r.left<x && r.right>x && r.top<y && r.bottom>y) {            
-                return r;
-            }
-        }
-        return false;
-    }
-    return null;
+		console.log(parentElt.nodeName);
+		if (parentElt.nodeName !== '#text') {
+			console.log('didn\'t look on text node');
+			return null;
+		}
+		var range = document.createRange();
+		var words = parentElt.textContent.split(' ');
+		var start = 0;
+		var end = 0;
+		for (var i = 0; i < words.length; i++) {
+			var word = words[i];
+			end = start+word.length;
+			range.setStart(parentElt, start);
+			range.setEnd(parentElt, end);
+			// not getBoundingClientRect as word could wrap
+			var rects = range.getClientRects();
+			var clickedRect = isGazeInRects(rects);
+			if (clickedRect) {
+				return [word, start, clickedRect];
+			}
+			start = end + 1;
+		}
+		
+		function isGazeInRects(rects) {
+			for (var i = 0; i < rects.length; ++i) {
+				var r = rects[i]
+				if (r.left<x && r.right>x && r.top<y && r.bottom>y) {            
+					return r;
+				}
+			}
+			return false;
+		}
+		return null;
 	}
     for (element of elements) {
 		if (element.classList.contains('container-fluid')){
@@ -61,8 +65,15 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
 		}
 		if (element.classList.contains('inputline')){
 			console.log('solution area');
+			// ID = inputline-XX
+			var lineNumber = parseInt(element.id.split('-')[1]);
+			var word = null;
+			var gazed = findToken(element.childNodes[0], msg.x, msg.y);
+			if(gazed) {
+				word = gazed[0];
+			}
 			sentResult = true;
-			sendResponse({ result: 'solution area', line: null, word: null, x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
+			sendResponse({ result: 'solution area', line: lineNumber, word: word, x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
 			return;
 		}
 		if (element.id == 'task-timer'){
@@ -70,6 +81,11 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
 			sentResult = true;
 			sendResponse({ result: 'timer', line: null, word: null, x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
 			return;		
+		}
+		if (element.id == 'checkButton'){
+			console.log('check button');
+			sentResult = true;
+			sendResponse({ result: 'checkButton', line: null, word: null, x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url })
 		}
 	}
 	if (!sentResult) {
