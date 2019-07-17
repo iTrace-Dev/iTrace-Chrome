@@ -13,32 +13,33 @@
       "matches": ["*://bugs.eclipse.org/*", "*://bugzilla.mozilla.org/*", "*://bugzilla.kernel.org/*", "*://bz.apache.org/*"],
       "js": ["/assets/js/getBZCoordinate.js"]
     },
-	{
-		"matches": ["*://*.cs.unlv.edu/*"],
-		"js": ["/assets/js/getStefikCoordinate.js"]
-	},
-	{
-		"matches": ["https://stackoverflow.com/*"],
-		"js": ["/assets/js/getSearchCoordinate.js"]
-	},
-	{
-		"matches": ["https://*.google.com/*"],
-		"js": ["/assets/js/getGoogleCoordinate.js"]
-	}
+    {
+      "matches": ["*://*.cs.unlv.edu/*"],
+      "js": ["/assets/js/getStefikCoordinate.js"]
+    },
+    {
+      "matches": ["https://stackoverflow.com/*"],
+      "js": ["/assets/js/getSearchCoordinate.js"]
+    },
+    {
+      "matches": ["https://*.google.com/*"],
+      "js": ["/assets/js/getGoogleCoordinate.js"]
+    }
   ],
   "background": {
-    "persistent": false,
-    "scripts": ["/assets/js/jQuery-3.3.1.js", "/assets/js/main.js"]
+    "persistent": true,
+    "scripts": ["/assets/js/jQuery-3.3.1.js", "/assets/js/background.js"]
   },
   "browser_action": {
     "default_icon": {                    
       "16": "icon16.png",
       "48": "icon48.png",
       "128": "icon128.png"
-    }
+    },
+    "default_popup": "popup.html"
   },
   "permissions": [
-	"tabs",
+	  "tabs",
     "activeTab",
     "downloads"
   ],

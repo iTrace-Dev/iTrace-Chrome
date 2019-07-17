@@ -1,11 +1,26 @@
-var iTraceEventTime = null;
 
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
 	var elements = document.elementsFromPoint(msg.x, msg.y);
 
-	iTraceEventTime = msg.time;
+	document.getElementById("iTraceEventTime").value = msg.time;
+	var sentResult = false;
 	
-    var sentResult = false;
+	function findSpanInLine(parentElt, x, y) {
+		for(var i = 0; i < parentElt.childNodes.length; i++) {
+			if(parentElt.childNodes[i].nodeName === "SPAN") {
+				var boundingRect = parentElt.childNodes[i].getBoundingClientRect();
+				if(boundingRect.left <= x && boundingRect.right > x &&
+					boundingRect.top <= y && boundingRect.bottom > y)
+				{
+					var spanChildren = parentElt.childNodes[i].childNodes;
+					if(spanChildren.length != 0 && spanChildren[0].nodeName === "#text") {
+						return spanChildren[0].nodeValue;
+					}
+				}
+			}
+		}
+		return null;
+	}
 	
 	function findToken(parentElt, x, y) {
 		console.log(parentElt.nodeName);
@@ -14,9 +29,10 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
 			return null;
 		}
 		var range = document.createRange();
-		var words = parentElt.textContent.split(' ');
+		var words = parentElt.textContent.split(/( |\t)+/);
 		var start = 0;
 		var end = 0;
+
 		for (var i = 0; i < words.length; i++) {
 			var word = words[i];
 			end = start+word.length;
@@ -50,16 +66,24 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
 			return;
 		}
 		if (element.classList.contains('sampleline')){
-			var gazed = findToken(element.childNodes[0], msg.x, msg.y);	
-			if (gazed) {
-				var word = gazed[0];
-				var start = gazed[1]; //offset
-				var r = gazed[2];
+			var word = findSpanInLine(element, msg.x, msg.y);
+			if (word != null) {
 				// ID = smpA1-line-XX
 				var lineNumber = parseInt(element.id.split('-')[2]);
 				console.log('code sample');
 				sentResult = true;
 				sendResponse({ result: 'code sample', line:lineNumber, word:word, x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
+				return;
+			}
+		}
+		if (element.classList.contains("outputline")){
+			var word = findSpanInLine(element, msg.x, msg.y);
+			if (word != null) {
+				// ID = output-line-xx
+				var lineNumber = parseInt(element.id.split('-')[2]);
+				console.log('task output');
+				sentResult = true;
+				sendResponse({ result: 'task output', line:lineNumber, word:word, x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
 				return;
 			}
 		}
