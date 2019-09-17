@@ -23,10 +23,6 @@ function afterSessionSetup(websocket) {
     }
 }
 
-if(iTraceChrome.isActive) {
-    $("#session_status").html("Session Started - Connected");
-}
-
 $(document).ready(function() {
     $("#start_session").on("click", function(event) {
         chrome.tabs.query({active: true, currentWindow:true}, function(tabs) {
@@ -37,4 +33,8 @@ $(document).ready(function() {
     $("#write_xml").on("click", function(event) {
         iTraceChrome.writeXMLData();
     });
+
+    if (iTraceChrome.isActive) {
+        $("#session_status").html("Session Started - Connected");
+    }
 });

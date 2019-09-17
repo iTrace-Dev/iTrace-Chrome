@@ -63,17 +63,20 @@ window.iTraceChrome = {
           return;
       }
       //var printString = 'x: ' + response.x + ', y: ' + response.y + ', result: ' + response.result + ', url: ' + iTraceChrome.currentUrl;
-      var sessionDataItem = { timestamp: response.time, x: response.x, y: response.y, area: response.result, line: response.line, word: response.word, tagname: response.tagname, id: response.id, url: this.currentUrl };
+      var sessionDataItem = { timestamp: response.time, current_timestamp: new Date().getTime(), x: response.x, y: response.y, area: response.result, line: response.line, word: response.word, tagname: response.tagname, id: response.id, url: iTraceChrome.currentUrl };
       iTraceChrome.sessionData.push(sessionDataItem);
 
       if(iTraceChrome.db != null) {
         var transaction = iTraceChrome.db.transaction(["sessionData"], "readwrite");
 
         var objectStore = transaction.objectStore("sessionData");
+        objectStore.add(sessionDataItem)
       }
   },
-  writeXMLData: function() {
-      this.websocket.close();
+  writeXMLData: function () {
+      if (iTraceChrome.websocket != null) {
+          iTraceChrome.websocket.close();
+      }
   
       // call method to parse JSON to xml string, then write to file
       var xmlString = iTraceChrome.json2xml(iTraceChrome.sessionData);
@@ -81,28 +84,37 @@ window.iTraceChrome = {
       // create blob with url for chrome.downloads api
       var xmlBlob = new Blob([xmlString], { type: "text/xml" });
       var url = URL.createObjectURL(xmlBlob);
-  
+
+
+      var filePath = "chrome_plugin_data.xml";
+      if (iTraceChrome.fileLocation != "") {
+          var pathParts = iTraceChrome.fileLocation.split('\\');
+          var trackerTime = pathParts[pathParts.length - 1].trim()
+          filePath = "chrome_" + trackerTime + ".xml";
+      }
       // download file
       // currently defaults to downloading to the device's download folder
       // can be changed to any path in local storage
       chrome.downloads.download({
           url: url,
-          filename: "chrome_plugin_data.xml"
+          filename: filePath
       });
   
       iTraceChrome.isActive = false;
       iTraceChrome.sessionData = [];
+      iTraceChrome.fileLocation = "";
 
       if(iTraceChrome.db) {
-        var objectStore = db.transaction("sessionData").objectStore("sessionData");
+        var objectStore = iTraceChrome.db.transaction(["sessionData"], "readwrite").objectStore("sessionData");
         objectStore.clear();
       }
   },
-  loadIndexedDBData: function() {
+  loadIndexedDBData: function(callback) {
     if(iTraceChrome.db && iTraceChrome.sessionData.length == 0) {
       var objectStore = iTraceChrome.db.transaction("sessionData").objectStore("sessionData");
       objectStore.getAll().onsuccess = function(event) {
         iTraceChrome.sessionData = event.target.result;
+        callback();
       }
     }
   },
