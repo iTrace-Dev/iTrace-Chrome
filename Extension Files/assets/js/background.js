@@ -16,6 +16,13 @@ window.iTraceChrome = {
           return { x: x - offsetY, y: y - offsetX };
       }
   },
+  groupByFilename: function(data) {
+    return data.reduce(function(objectsByKeyValue, obj) {
+      var value = obj.filename;
+      objectsByKeyValue[value] = (objectsByKeyValue[value] || []).concat(obj);
+      return objectsByKeyValue;
+    }, {});
+  },
   json2xml: function(o, tab) {
       var toXml = function(v, name, ind) {
          var xml = "";
@@ -77,28 +84,29 @@ window.iTraceChrome = {
       if (iTraceChrome.websocket != null) {
           iTraceChrome.websocket.close();
       }
-  
-      // call method to parse JSON to xml string, then write to file
-      var xmlString = iTraceChrome.json2xml(iTraceChrome.sessionData);
-  
-      // create blob with url for chrome.downloads api
-      var xmlBlob = new Blob([xmlString], { type: "text/xml" });
-      var url = URL.createObjectURL(xmlBlob);
 
+      var sessionsData = iTraceChrome.groupByFilename(iTraceChrome.sessionData);
 
-      var filePath = "chrome_plugin_data.xml";
-      if (iTraceChrome.fileLocation != "") {
-          var pathParts = iTraceChrome.fileLocation.split('\\');
-          var trackerTime = pathParts[pathParts.length - 1].trim()
-          filePath = "chrome_" + trackerTime + ".xml";
+      for(var file in sessionsData) {
+        // call method to parse JSON to xml string, then write to file
+        var xmlString = iTraceChrome.json2xml(sessionsData[file]);
+    
+        // create blob with url for chrome.downloads api
+        var xmlBlob = new Blob([xmlString], { type: "text/xml" });
+        var url = URL.createObjectURL(xmlBlob);
+  
+        var filePath = "chrome_plugin_data.xml";
+        if (file != "") {
+          filePath = "itrace_chrome_" + file + ".xml";
+        }
+        // download file
+        // currently defaults to downloading to the device's download folder
+        // can be changed to any path in local storage
+        chrome.downloads.download({
+            url: url,
+            filename: filePath
+        });
       }
-      // download file
-      // currently defaults to downloading to the device's download folder
-      // can be changed to any path in local storage
-      chrome.downloads.download({
-          url: url,
-          filename: filePath
-      });
   
       iTraceChrome.sessionData = [];
       iTraceChrome.fileLocation = "";
@@ -124,10 +132,11 @@ window.iTraceChrome = {
 
     if (eyeGazeData.substring(0, eyeGazeData.indexOf(',')) == 'session_start'){
       var tmp = eyeGazeData.substring(eyeGazeData.indexOf(',') + 1);
-      iTraceChrome.fileLocation = tmp;
+      tmp = tmp.substring(tmp.indexOf(',') + 1);
+      iTraceChrome.fileLocation = tmp.substring(0, tmp.indexOf(','));
       return;
     }
-    else if(eyeGazeData.substring(0, eyeGazeData,indexOf(',')) == "session_end") {
+    else if(eyeGazeData.substring(0, eyeGazeData.indexOf(',')) == "session_end") {
       iTraceChrome.isActive = false;
     }
     var timeStampAndCoords = eyeGazeData.substring(eyeGazeData.indexOf(',') + 1);
