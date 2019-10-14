@@ -6,26 +6,36 @@
   "version": "0.0.1",
   "content_scripts": [
     {
-      "matches": ["*://stackoverflow.com/*"],
+      "matches": ["*://stackoverflow.com/questions/*"],
       "js": ["/assets/js/getSOCoordinate.js"]
     },
     {
       "matches": ["*://bugs.eclipse.org/*", "*://bugzilla.mozilla.org/*", "*://bugzilla.kernel.org/*", "*://bz.apache.org/*"],
       "js": ["/assets/js/getBZCoordinate.js"]
+    },
+    {
+      "matches": ["https://stackoverflow.com/*"],
+      "js": ["/assets/js/getSearchCoordinate.js"]
+    },
+    {
+      "matches": ["https://*.google.com/*"],
+      "js": ["/assets/js/getGoogleCoordinate.js"]
     }
   ],
   "background": {
-    "persistent": false,
-    "scripts": ["/assets/js/jQuery-3.3.1.js", "/assets/js/main.js"]
+    "persistent": true,
+    "scripts": ["/assets/js/jQuery-3.3.1.js", "/assets/js/background.js"]
   },
   "browser_action": {
     "default_icon": {                    
-      "16": "icon.png",
-      "24": "icon.png",
-      "32": "icon.png"
-    }
+      "16": "icon16.png",
+      "48": "icon48.png",
+      "128": "icon128.png"
+    },
+    "default_popup": "popup.html"
   },
   "permissions": [
+	  "tabs",
     "activeTab",
     "downloads"
   ],

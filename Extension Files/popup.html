@@ -1,11 +1,18 @@
+<!DOCTYPE html>
 <html>
     <head>
         <title>iTrace-Chrome Plugin</title>
-        <script async src="assets/js/jquery-3.3.1.js"></script>
-        <script async src="assets/js/lodash.js"></script>
+        <script src="assets/js/jquery-3.3.1.js"></script>
+        <script src="assets/js/lodash.js"></script>
+        <script src="assets/js/main.js"></script>
     </head>
     <body>
-        Click Button Below to Start Session
-        <button id="start">Start</button>
+        <div style="width:500px; border: 1px solid black">
+            Click Button Below to Connect To Server
+            <button id="start_session">Start</button>
+            <div id="session_status">Not Connected To Core</div>
+        </div>
+        <hr/>
+        <button id="write_xml">Write XML Data</button>
     </body>
 </html>

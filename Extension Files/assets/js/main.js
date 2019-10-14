@@ -1,197 +1,81 @@
 // main JavaScript driver for the iTrace-Chrome plugin, all data will be handled here
-
-/**
- * Get the current URL.
- *
- * @param {function(string)} callback called when the URL of the current tab
- *   is found.
- */
-function getCurrentTabUrl(callback) {
-  // Query filter to be passed to chrome.tabs.query - see
-  // https://developer.chrome.com/extensions/tabs#method-query
-  var queryInfo = {
-    active: true,
-    currentWindow: true
-  };
-
-  chrome.tabs.query(queryInfo, (tabs) => {
-    var tab = tabs[0];
-
-    var url = tab.url;
-
-    console.assert(typeof url == 'string', 'tab.url should be a string');
-
-    callback(url, tab.id);
-  });
-}
-
-function translateCoordinates(x, y) {
-    // broswer viewport dimensions
-
-    // screen dimensions
-    var screenX = screen.height;
-    var screenY = screen.width;
-
-    var offsetX = screenX - this.browserX;
-    var offsetY = screenY - this.browserY;
-
-    if (x < offsetX || y < offsetY) {
-        // user is looking outside of the broswer viewport, most likely at the broswer's shell
-        return null;
-    } else {
-        // user is looking in the broswer viewport, return the translated coordinates
-        return { x: x - offsetY, y: y - offsetX };
-    }
-}
-
-function json2xml(o, tab) {
-    var toXml = function(v, name, ind) {
-       var xml = "";
-       if (v instanceof Array) {
-          for (var i=0, n=v.length; i<n; i++)
-             xml += ind + toXml(v[i], name, ind+"\t") + "\n";
-       }
-       else if (typeof(v) == "object") {
-          var hasChild = false;
-          xml += ind + "<" + name;
-          for (var m in v) {
-             if (m.charAt(0) == "@")
-                xml += " " + m.substr(1) + "=\"" + v[m].toString();
-             else
-                hasChild = true;
-          }
-          xml += hasChild ? ">"  + "\n" : "/>"  + "\n";
-          if (hasChild) {
-             for (var m in v) {
-                if (m == "#text")
-                   xml += v[m] + "\n";
-                else if (m == "#cdata")
-                   xml += "<![CDATA[" + v[m] + "]]>";
-                else if (m.charAt(0) != "@")
-                   xml += toXml(v[m], m, "gaze\t") + "\n";
-             }
-             xml += (xml.charAt(xml.length-1)=="\n"?ind:"") + "</" + name + ">";
-          }
-       }
-       else {
-          xml += ind + "<" + name + ">" + v.toString() +  "</" + name + ">";
-       }
-       return xml;
-    }, xml="";
-    for (var m in o)
-       xml += toXml(o[m], m, "") + "\n";
-    return xml;
- }
-
-function printResults(response) {
-    if (response) {
-        this.sessionData.push({ timestamp: response.time, x: response.x, y: response.y, response: response.result, tagname: response.tagname, id: response.id, url: response.url });
-        var printString = 'x: ' + response.x + ', y: ' + response.y + ', result: ' + response.result;
-        console.log(printString);
-    }
-}
-
-function writeXMLData() {
-    this.websocket.close();
-
-    // call method to parse JSON to xml string, then write to file
-    var xmlString = json2xml(this.sessionData);
-
-    // create blob with url for chrome.downloads api
-    var xmlBlob = new Blob([xmlString], { type: "text/xml" });
-    var url = URL.createObjectURL(xmlBlob);
-
-    // download file
-    // currently defaults to downloading to the device's download folder
-    // can be changed to any path in local storage
-    chrome.downloads.download({
-        url: url,
-    });
-
-    this.isActive = false;
-
-    chrome.browserAction.onClicked.removeListener(this.writeXMLData.bind(this));
-    chrome.browserAction.onClicked.addListener(this.startSession.bind(this));
-    this.sessionData = [];
-}
-
-function webSocketHandler(e) {
-    // deal with incoming eyegaze data
-
-    var eyeGazeData = e.data;
-    var timeStamp = eyeGazeData.substring(0, eyeGazeData.indexOf(','));
-
-    var coordString = eyeGazeData.substring(eyeGazeData.indexOf(',') + 1);
-
-    var x = coordString.substring(0                           , coordString.indexOf(','));
-    var y = coordString.substring(coordString.indexOf(',') + 1, coordString.length      );
-
-    // parse values
-    x = parseInt(x);
-    y = parseInt(y);
-
-    // get translated coordinates
-    var coords = translateCoordinates(x, y);
-
-    if (!coords) {
-        // user is not looking in the html viewport
-    } else {
-        // user is looking in the html viewport
-        // need to check which website the user is looking at
-        chrome.tabs.query({ 'active': true }, function (tabs) {
-            var url = this.tab.url;
-            if (url.includes('stackoverflow.com/questions/')) {
-                chrome.tabs.sendMessage(this.id, { text: 'get_so_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url  }, this.printResults );
-            }
-            if (url.includes('https://bug')) { // NOTE: This include may be incorect, will need to do some more research
-                chrome.tabs.sendMessage(this.id, { text: 'get_bz_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url  }, this.printResults );
-            }
-        }.bind(this));
-    }
-}
-
-function getBrowserX(result) {
-    console.log('browserX');
-    console.log(result);
-    this.browserX = result[0];
-}
-
-function getBrowserY(result) {
-    console.log('browserY');
-    console.log(result);
-    this.browserY = result[0];
-}
-
-function startSession(tab) {
-    this.tab = tab;
-    console.log('START SESSION');
-
-    chrome.tabs.executeScript({
-        'code': 'window.innerHeight'
-    }, this.getBrowserX.bind(this));
-
-    chrome.tabs.executeScript({
-        'code': 'window.innerWidth'
-    }, this.getBrowserY.bind(this));
-
-    var queryInfo = {
-        active: true,
-        currentWindow: true
-    };
-    var url = tab.url;
-    this.id = tab.id;
-
-    this.websocket = new WebSocket('ws://localhost:7007');
-
-    // listen for eye gaze data coming from the server
-    this.websocket.onmessage = this.webSocketHandler.bind(this);
-
-    chrome.browserAction.onClicked.removeListener(this.startSession.bind(this));
-    chrome.browserAction.onClicked.addListener(this.writeXMLData.bind(this));
-}
-
 this.isActive = false;
 this.sessionData = [];
+this.currentUrl = "";
 
-// add initial listener for the broswerAction click
-chrome.browserAction.onClicked.addListener(this.startSession.bind(this));
+var _this = this;
+debugger;
+
+var iTraceChrome = chrome.extension.getBackgroundPage().iTraceChrome;
+if(iTraceChrome.isInitialized == false) {
+    iTraceChrome.initialize();
+}
+
+function afterSessionSetup(websocket) {    
+    $("#session_status").html("Session Started - Attempting To Connect");
+  
+    websocket.onopen = function() {
+        $("#session_status").html("Session Started - Connected");
+    }
+
+    websocket.onclose = function() {
+        $("#session_status").html("Not Connected To Core");
+    }
+}
+
+$(document).ready(function() {
+    $("#start_session").on("click", function(event) {
+        chrome.tabs.query({active: true, currentWindow:true}, function(tabs) {
+            iTraceChrome.startSession(tabs, afterSessionSetup);
+        });
+    });
+    
+    $("#write_xml").on("click", function(event) {
+        iTraceChrome.writeXMLData();
+    });
+
+    if (iTraceChrome.isActive) {
+        $("#session_status").html("Session Started - Connected");
+    }
+});
+
+/* Example code for finding the token user is gazing at used inside get_XXX_Coordinate.js
+
+	
+	function findToken(parentElt, x, y) {
+		console.log(parentElt.nodeName);
+		if (parentElt.nodeName !== '#text') {
+			console.log('didn\'t look on text node');
+			return null;
+		}
+		var range = document.createRange();
+		var words = parentElt.textContent.split(/( |\t)+/);
+		var start = 0;
+		var end = 0;
+
+		for (var i = 0; i < words.length; i++) {
+			var word = words[i];
+			end = start+word.length;
+			range.setStart(parentElt, start);
+			range.setEnd(parentElt, end);
+			// not getBoundingClientRect as word could wrap
+			var rects = range.getClientRects();
+			var clickedRect = isGazeInRects(rects);
+			if (clickedRect) {
+				return [word, start, clickedRect];
+			}
+			start = end + 1;
+		}
+		
+		function isGazeInRects(rects) {
+			for (var i = 0; i < rects.length; ++i) {
+				var r = rects[i]
+				if (r.left<x && r.right>x && r.top<y && r.bottom>y) {            
+					return r;
+				}
+			}
+			return false;
+		}
+		return null;
+    }
+*/
