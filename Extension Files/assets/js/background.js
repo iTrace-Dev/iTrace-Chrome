@@ -4,10 +4,10 @@ window.iTraceChrome = {
       // screen dimensions
       var screenX = screen.height;
       var screenY = screen.width;
-  
+
       var offsetX = screenX - iTraceChrome.browserX;
       var offsetY = screenY - iTraceChrome.browserY;
-  
+
       if (x < offsetX || y < offsetY) {
           // user is looking outside of the broswer viewport, most likely at the broswer's shell
           return null;
@@ -70,7 +70,7 @@ window.iTraceChrome = {
           return;
       }
       //var printString = 'x: ' + response.x + ', y: ' + response.y + ', result: ' + response.result + ', url: ' + iTraceChrome.currentUrl;
-      var sessionDataItem = { filename: iTraceChrome.fileLocation, timestamp: response.time, current_timestamp: new Date().getTime(), x: response.x, y: response.y, area: response.result, line: response.line, word: response.word, tagname: response.tagname, id: response.id, url: iTraceChrome.currentUrl };
+      var sessionDataItem = { filename: iTraceChrome.fileLocation, timestamp: response.time, current_timestamp: new Date().getTime(), x: response.x, y: response.y, area: response.result, word: response.word, tagname: response.tagname, id: response.id, url: iTraceChrome.currentUrl };
       iTraceChrome.sessionData.push(sessionDataItem);
 
       if(iTraceChrome.db != null) {
@@ -90,11 +90,11 @@ window.iTraceChrome = {
       for(var file in sessionsData) {
         // call method to parse JSON to xml string, then write to file
         var xmlString = iTraceChrome.json2xml(sessionsData[file]);
-    
+
         // create blob with url for chrome.downloads api
         var xmlBlob = new Blob([xmlString], { type: "text/xml" });
         var url = URL.createObjectURL(xmlBlob);
-  
+
         var filePath = "chrome_plugin_data.xml";
         if (file != "") {
           filePath = "itrace_chrome_" + file + ".xml";
@@ -107,7 +107,7 @@ window.iTraceChrome = {
             filename: filePath
         });
       }
-  
+
       iTraceChrome.sessionData = [];
       iTraceChrome.fileLocation = "";
 
@@ -168,9 +168,12 @@ window.iTraceChrome = {
             }
             if (url.includes('stackoverflow.com/search')) {
                 chrome.tabs.sendMessage(iTraceChrome.id, { text: 'get_search_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url }, iTraceChrome.printResults);
-            }	
+            }
             if (url.includes('google.com')){
                 chrome.tabs.sendMessage(iTraceChrome.id, { text: 'get_google_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url }, iTraceChrome.printResults);
+            }
+            if (url.includes('file://')){
+                chrome.tabs.sendMessage(iTraceChrome.id, { text: 'get_tos_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url}, iTraceChrome.printResults);
             }
         });
     }
@@ -226,7 +229,7 @@ window.iTraceChrome = {
       countRequest.onsuccess = function() {
         if(countRequest.result > 0) {
           console.log("PREVIOUS RESULTS FOUND AND BEING WRITTEN");
-          
+
           objectStore.getAll().onsuccess = function(event) {
             iTraceChrome.sessionData = event.target.result;
             iTraceChrome.writeXMLData();
