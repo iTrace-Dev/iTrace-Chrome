@@ -1,4 +1,6 @@
 // main JavaScript driver for the iTrace-Chrome plugin, all data will be handled here
+
+
 window.iTraceChrome = {
   translateCoordinates: function(x, y) {
       // screen dimensions
@@ -32,7 +34,8 @@ window.iTraceChrome = {
          }
          else if (typeof(v) == "object") {
             var hasChild = false;
-            xml += ind + "<" + name;
+            console.log(name);
+            xml += ind + "<itrace-chrome-record id=\"" + name + "\"";
             for (var m in v) {
                if (m.charAt(0) == "@")
                   xml += " " + m.substr(1) + "=\"" + String(v[m]);
@@ -49,7 +52,7 @@ window.iTraceChrome = {
                   else if (m.charAt(0) != "@")
                      xml += toXml(v[m], m, "\t") + "\n";
                }
-               xml += (xml.charAt(xml.length-1)=="\n"?ind:"") + "</" + name + ">";
+               xml += (xml.charAt(xml.length-1)=="\n"?ind:"") + "</" + "itrace-chrome-record" + ">";
             }
          }
          else {
@@ -66,11 +69,9 @@ window.iTraceChrome = {
         this.currentUrl = tab.url;
       }.bind(iTraceChrome));
       if(response == null) {
-          // user is looking off screen
           return;
       }
-      //var printString = 'x: ' + response.x + ', y: ' + response.y + ', result: ' + response.result + ', url: ' + iTraceChrome.currentUrl;
-      var sessionDataItem = { filename: iTraceChrome.fileLocation, timestamp: response.time, current_timestamp: new Date().getTime(), x: response.x, y: response.y, area: response.result, line: response.line, word: response.word, tagname: response.tagname, id: response.id, url: iTraceChrome.currentUrl };
+      var sessionDataItem = { filename: iTraceChrome.fileLocation, timestamp: response.time, current_timestamp: new Date().getTime(), x: response.x, y: response.y, result: response.result, id: response.id, url: iTraceChrome.currentUrl };
       iTraceChrome.sessionData.push(sessionDataItem);
 
       if(iTraceChrome.db != null) {
@@ -84,9 +85,8 @@ window.iTraceChrome = {
       if (iTraceChrome.websocket != null) {
           iTraceChrome.websocket.close();
       }
-
       var sessionsData = iTraceChrome.groupByFilename(iTraceChrome.sessionData);
-
+      console.log(sessionsData);
       for(var file in sessionsData) {
         // call method to parse JSON to xml string, then write to file
         var xmlString = iTraceChrome.json2xml(sessionsData[file]);
@@ -127,7 +127,6 @@ window.iTraceChrome = {
   },
   webSocketHandler: function(e) {
     // deal with incoming eyegaze data
-
     var eyeGazeData = e.data;
 
     if (eyeGazeData.substring(0, eyeGazeData.indexOf(',')) == 'session_start'){
@@ -152,14 +151,14 @@ window.iTraceChrome = {
 
     // get translated coordinates
     var coords = iTraceChrome.translateCoordinates(x, y);
-
     if (!coords || isNaN(x) || isNaN(y)) {
         // user is not looking in the html viewport
     } else {
         // user is looking in the html viewport
         // need to check which website the user is looking at
-        chrome.tabs.query({ 'active': true }, function (tabs) {
+        chrome.tabs.query({ 'active': true, }, function (tabs) {
             var url = iTraceChrome.tab.url;
+            console.log(url);
             if (url.includes('stackoverflow.com/questions/')) {
                 chrome.tabs.sendMessage(iTraceChrome.id, { text: 'get_so_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url  }, iTraceChrome.printResults );
             }
@@ -171,6 +170,21 @@ window.iTraceChrome = {
             }	
             if (url.includes('google.com')){
                 chrome.tabs.sendMessage(iTraceChrome.id, { text: 'get_google_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url }, iTraceChrome.printResults);
+            }
+            if (url.includes('github.com/JabRef/jabref/issues/')) {
+              chrome.tabs.sendMessage(iTraceChrome.id, {text: 'get_github_issues_page_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url}, iTraceChrome.printResults);
+            }
+            if (url.includes('github.com/JabRef/jabref/') && url.includes("__issues.html")) {
+                chrome.tabs.sendMessage(iTraceChrome.id, {text: 'get_github_issues_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url}, iTraceChrome.printResults);
+            }
+            if (url.includes('github.com/JabRef/jabref/') && url.includes('__pulls.html')) {
+              chrome.tabs.sendMessage(iTraceChrome.id, {text: 'get_github_prlist_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url}, iTraceChrome.printResults);
+            }
+            if (url.includes('github.com/JabRef/jabref/pull/')) {
+              chrome.tabs.sendMessage(iTraceChrome.id, {text: 'get_github_pr_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url}, iTraceChrome.printResults);
+            }
+            if (url.includes('github.com/') && !url.includes('jabref')) {
+              chrome.tabs.sendMessage(iTraceChrome.id, {text: 'get_github_dev_profile_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url}, iTraceChrome.printResults);
             }
         });
     }
@@ -187,6 +201,10 @@ window.iTraceChrome = {
   },
   startSession: function(tabs, callback) {
     iTraceChrome.tab = tabs[0];
+    chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
+      iTraceChrome.tab = tab;
+      iTraceChrome.id = tabId;
+    });
     console.log('START SESSION');
 
     chrome.tabs.executeScript({
