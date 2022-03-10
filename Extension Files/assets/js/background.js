@@ -6,10 +6,10 @@ window.iTraceChrome = {
       // screen dimensions
       var screenX = screen.height;
       var screenY = screen.width;
-  
+
       var offsetX = screenX - iTraceChrome.browserX;
       var offsetY = screenY - iTraceChrome.browserY;
-  
+
       if (x < offsetX || y < offsetY) {
           // user is looking outside of the broswer viewport, most likely at the broswer's shell
           return null;
@@ -34,8 +34,7 @@ window.iTraceChrome = {
          }
          else if (typeof(v) == "object") {
             var hasChild = false;
-            console.log(name);
-            xml += ind + "<itrace-chrome-record id=\"" + name + "\"";
+            xml += ind + "<" + name;
             for (var m in v) {
                if (m.charAt(0) == "@")
                   xml += " " + m.substr(1) + "=\"" + String(v[m]);
@@ -52,7 +51,7 @@ window.iTraceChrome = {
                   else if (m.charAt(0) != "@")
                      xml += toXml(v[m], m, "\t") + "\n";
                }
-               xml += (xml.charAt(xml.length-1)=="\n"?ind:"") + "</" + "itrace-chrome-record" + ">";
+               xml += (xml.charAt(xml.length-1)=="\n"?ind:"") + "</" + name + ">";
             }
          }
          else {
@@ -85,16 +84,17 @@ window.iTraceChrome = {
       if (iTraceChrome.websocket != null) {
           iTraceChrome.websocket.close();
       }
+
       var sessionsData = iTraceChrome.groupByFilename(iTraceChrome.sessionData);
       console.log(sessionsData);
       for(var file in sessionsData) {
         // call method to parse JSON to xml string, then write to file
         var xmlString = iTraceChrome.json2xml(sessionsData[file]);
-    
+
         // create blob with url for chrome.downloads api
         var xmlBlob = new Blob([xmlString], { type: "text/xml" });
         var url = URL.createObjectURL(xmlBlob);
-  
+
         var filePath = "chrome_plugin_data.xml";
         if (file != "") {
           filePath = "itrace_chrome_" + file + ".xml";
@@ -107,7 +107,7 @@ window.iTraceChrome = {
             filename: filePath
         });
       }
-  
+
       iTraceChrome.sessionData = [];
       iTraceChrome.fileLocation = "";
 
@@ -167,23 +167,23 @@ window.iTraceChrome = {
             }
             if (url.includes('stackoverflow.com/search')) {
                 chrome.tabs.sendMessage(iTraceChrome.id, { text: 'get_search_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url }, iTraceChrome.printResults);
-            }	
+            }
             if (url.includes('google.com')){
                 chrome.tabs.sendMessage(iTraceChrome.id, { text: 'get_google_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url }, iTraceChrome.printResults);
             }
-            if (url.includes('github.com/JabRef/jabref/issues/')) {
-              chrome.tabs.sendMessage(iTraceChrome.id, {text: 'get_github_issues_page_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url}, iTraceChrome.printResults);
-            }
-            if (url.includes('github.com/JabRef/jabref/') && url.includes("__issues.html")) {
+            if (url.includes('github.com/jabref/jabref/issues')) {
                 chrome.tabs.sendMessage(iTraceChrome.id, {text: 'get_github_issues_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url}, iTraceChrome.printResults);
             }
-            if (url.includes('github.com/JabRef/jabref/') && url.includes('__pulls.html')) {
+            if (url.includes('github.com/*/*/pulls')) {
               chrome.tabs.sendMessage(iTraceChrome.id, {text: 'get_github_prlist_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url}, iTraceChrome.printResults);
             }
-            if (url.includes('github.com/JabRef/jabref/pull/')) {
+            if (url.includes('github.com/JabRef/jabref/pull')) {
               chrome.tabs.sendMessage(iTraceChrome.id, {text: 'get_github_pr_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url}, iTraceChrome.printResults);
             }
-            if (url.includes('github.com/') && !url.includes('jabref')) {
+            if (url.includes('github.com') && url.includes('pull')) {
+                chrome.tabs.sendMessage(iTraceChrome.id, { text: 'get_github_pr_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url }, iTraceChrome.printResults);
+            }
+            if (url.includes('github.com/tobiasdiez')) {
               chrome.tabs.sendMessage(iTraceChrome.id, {text: 'get_github_dev_profile_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url}, iTraceChrome.printResults);
             }
         });
@@ -244,7 +244,7 @@ window.iTraceChrome = {
       countRequest.onsuccess = function() {
         if(countRequest.result > 0) {
           console.log("PREVIOUS RESULTS FOUND AND BEING WRITTEN");
-          
+
           objectStore.getAll().onsuccess = function(event) {
             iTraceChrome.sessionData = event.target.result;
             iTraceChrome.writeXMLData();

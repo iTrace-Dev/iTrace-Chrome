@@ -1,16 +1,9 @@
-console.log('Github Issues Script Started');
+console.log('Github Issuees Script Started');
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     const elements = document.elementsFromPoint(msg.x, msg.y);
     let sentResult = false;
     for (element of elements) {
-        if (element.id.includes('issue_') && element.id.includes("link")) {
-            console.log("Issue Title");
-            const title = element.innerHTML.trim();
-            sentResult = true;
-            sendResponse({ result: `IssueTitle-${title}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
-            return;
-        }
-
+        console.log("loopping");
         if (element.classList.contains('btn-link') && element.innerHTML.includes('Open') && element.tagName === 'A') {
             console.log("Number of issues open");
             const numberOpen = element.innerHTML;
@@ -77,7 +70,8 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 sentResult = true;
                 sendResponse({ result: `Issue-${issue}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
                 return;
-            } else if (linkType.includes("comments")) {
+            } else if (linkType.includes
+                ("comments")) {
                 const numberOfComments = element.attributes.getNamedItem('aria-label').value;
                 sentResult = true;
                 sendResponse({ result: `NumOfComments-${numberOfComments}`, x: msg.x, y: msg.y, time: msg.time, url: msg.url });
@@ -87,8 +81,9 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
         if (element.tagName === 'RELATIVE-TIME') {
             console.log('Time open')
             const opened = element.innerHTML;
+            const timestamp = element.attributes.getNamedItem('title').value;
             sentResult = true;
-            sendResponse({ result: `IssueOpened-${opened}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
+            sendResponse({ result: `IssueOpened-${opened} on ${timestamp}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
             return;
         }
         if (element.classList.contains('task-progress-counts')) {

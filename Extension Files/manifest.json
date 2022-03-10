@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-  "name": "iTrace-Chrome Plugin - GitHub Code Review Study",
+  "name": "iTrace-Chrome Plugin-EmojiStudy",
   "description": "Plugin which allows for tracking eyegaze data on webpages in Chrome.",
   "version": "0.0.1",
   "content_scripts": [
@@ -25,10 +25,6 @@
       "js": ["/assets/js/getGithubIssueListCoordinate.js"]
     },
     {
-      "matches": ["https://github.com/*/*/issues/*"],
-      "js": ["/assets/js/getGithubIssuePageCoordinate.js"]
-    },
-    {
       "matches": ["https://github.com/*/*/pulls"],
       "js": ["/assets/js/getGithubPRListCoordinate.js"]
     },
@@ -43,30 +39,6 @@
     {
       "matches": ["https://github.com/*tab*"],
       "js": ["/assets/js/getGithubDevProfileCoordinate.js"]
-    },
-    {
-      "matches": ["file:///*/web-copy/*/github.com/JabRef/jabref/pull/*.html"],
-      "js": ["/assets/js/getGithubPullRequestCoordinate.js"]
-    },
-    {
-      "matches": ["file:///*/web-copy/*/github.com/JabRef/jabref/issues/*.html"],
-      "js": ["/assets/js/getGitHubIssuePageCoordinate.js"]
-    },
-    {
-      "matches": ["file:///*/web-copy/*/github.com/JabRef/jabref/*__pulls.html"],
-      "js": ["/assets/js/getGithubPRListCoordinate.js"]
-    },
-    {
-      "matches": ["file:///*/web-copy/*/github.com/JabRef/jabref/*__issues.html"],
-      "js": ["/assets/js/getGithubIssueListCoordinate.js"]
-    },
-    {
-      "matches": ["file:///*/web-copy/*/github.com/JabRef/jabref/issue/*.html"],
-      "js": ["/assets/js/getGithubPRListCoordinate.js"]
-    },
-    {
-      "matches": ["file:///*/web-copy/*/github.com/*__*.html"],
-      "js": ["/assets/js/getGithubDevProfileCoordinate.js"]
     }
   ],
   "background": {
@@ -74,7 +46,7 @@
     "scripts": ["/assets/js/jQuery-3.3.1.js", "/assets/js/background.js"]
   },
   "browser_action": {
-    "default_icon": {                    
+    "default_icon": {
       "16": "icon16.png",
       "48": "icon48.png",
       "128": "icon128.png"
