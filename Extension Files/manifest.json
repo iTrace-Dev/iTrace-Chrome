@@ -20,6 +20,26 @@
     {
       "matches": ["https://*.google.com/*"],
       "js": ["/assets/js/getGoogleCoordinate.js"]
+    },
+    {
+      "matches": ["https://github.com/*/*/issues"],
+      "js": ["/assets/js/getGithubIssueListCoordinate.js"]
+    },
+    {
+      "matches": ["https://github.com/*/*/pulls"],
+      "js": ["/assets/js/getGithubPRListCoordinate.js"]
+    },
+    {
+      "matches": ["https://github.com/*/pull/*"],
+      "js": ["/assets/js/getGithubPullRequestCoordinate.js"]
+    },
+    {
+      "matches": ["https://github.com/*/"],
+      "js": ["/assets/js/getGithubDevProfileCoordinate.js"]
+    },
+    {
+      "matches": ["https://github.com/*tab*"],
+      "js": ["/assets/js/getGithubDevProfileCoordinate.js"]
     }
   ],
   "background": {

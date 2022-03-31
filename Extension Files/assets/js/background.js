@@ -172,6 +172,21 @@ window.iTraceChrome = {
             if (url.includes('google.com')){
                 chrome.tabs.sendMessage(iTraceChrome.id, { text: 'get_google_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url }, iTraceChrome.printResults);
             }
+            if (url.includes('github.com/*/*/issues')) {
+              chrome.tabs.sendMessage(iTraceChrome.id, {text: 'get_github_issues_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url}, iTraceChrome.printResults);
+            }
+            if (url.includes('github.com/*/*/pulls')) {
+              chrome.tabs.sendMessage(iTraceChrome.id, {text: 'get_github_prlist_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url}, iTraceChrome.printResults);
+            }
+            if (url.includes('github.com/*/*/pull')) {
+              chrome.tabs.sendMessage(iTraceChrome.id, {text: 'get_github_pr_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url}, iTraceChrome.printResults);
+            }
+            if (url.includes('github.com') && url.includes('pull')) {
+                chrome.tabs.sendMessage(iTraceChrome.id, { text: 'get_github_pr_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url }, iTraceChrome.printResults);
+            }
+            if (url.includes('github.com/')) {
+              chrome.tabs.sendMessage(iTraceChrome.id, {text: 'get_github_dev_profile_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url}, iTraceChrome.printResults);
+            }
         });
     }
   },
