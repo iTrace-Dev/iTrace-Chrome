@@ -1,4 +1,6 @@
-console.log('hello');
+console.log('Get Google Coordinates Script Started');
+
+// listens and logs for google's data
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
 	var elements = document.elementsFromPoint(msg.x, msg.y);
 

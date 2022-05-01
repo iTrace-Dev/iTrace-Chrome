@@ -8,9 +8,12 @@ debugger;
 
 var iTraceChrome = chrome.extension.getBackgroundPage().iTraceChrome;
 if(iTraceChrome.isInitialized == false) {
-    iTraceChrome.initialize();
+    iTraceChrome.initialize(); //initializing if it's not initialized
 }
 
+/*
+	This function displays the HTML text upon its status
+*/
 function afterSessionSetup(websocket) {    
     $("#session_status").html("Session Started - Attempting To Connect");
   

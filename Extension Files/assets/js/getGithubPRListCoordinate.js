@@ -1,4 +1,6 @@
 console.log('Github Pull Requests Script Started');
+
+// looks at a specific pull request and listen/logs the data and things associated with pull requests
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     const elements = document.elementsFromPoint(msg.x, msg.y);
     let sentResult = false;

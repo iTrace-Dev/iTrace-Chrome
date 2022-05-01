@@ -1,9 +1,12 @@
 console.log('Github Issuees Script Started');
+
+// listens for the different GitHub issue coordinates and data associated with it, then sends
+// response based on its results
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     const elements = document.elementsFromPoint(msg.x, msg.y);
     let sentResult = false;
     for (element of elements) {
-        console.log("loopping");
+        console.log("looping");
         if (element.classList.contains('btn-link') && element.innerHTML.includes('Open') && element.tagName === 'A') {
             console.log("Number of issues open");
             const numberOpen = element.innerHTML;

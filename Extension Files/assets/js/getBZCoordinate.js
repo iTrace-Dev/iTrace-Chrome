@@ -1,5 +1,6 @@
-// Listen for messages
-console.log('hello');
+console.log('Get BZ Coordinates Script Started');
+
+// listens for data of the different BZ columns and the data associated with and logs it
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     var elements = document.elementsFromPoint(msg.x, msg.y);
 

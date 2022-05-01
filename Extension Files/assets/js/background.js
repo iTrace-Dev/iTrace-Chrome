@@ -1,5 +1,9 @@
 // main JavaScript driver for the iTrace-Chrome plugin, all data will be handled here
 window.iTraceChrome = {
+
+  // this function takes the x and y coordinates from the screen and the browser
+  // to get the offset, which then returns the translated coordinates based off if the user
+  // is looking in or outside the viewport
   translateCoordinates: function(x, y) {
       // screen dimensions
       var screenX = screen.height;
@@ -16,6 +20,8 @@ window.iTraceChrome = {
           return { x: x - offsetY, y: y - offsetX };
       }
   },
+
+  // this function groups files by their name, param data are the files
   groupByFilename: function(data) {
     return data.reduce(function(objectsByKeyValue, obj) {
       var value = obj.filename;
@@ -23,6 +29,8 @@ window.iTraceChrome = {
       return objectsByKeyValue;
     }, {});
   },
+
+  // this function converts a JSON formatted file to an XML formatted file
   json2xml: function(o, tab) {
       var toXml = function(v, name, ind) {
          var xml = "";
@@ -61,15 +69,18 @@ window.iTraceChrome = {
          xml += toXml(o[m], m, "") + "\n";
       return xml;
    },
+
+  // this function takes the data from the session and adds it to the iTraceChrome's sessionData attribute
+  // and stores it in objectStore
    printResults: function(response) {
       chrome.tabs.getSelected(null,function(tab) {
         this.currentUrl = tab.url;
       }.bind(iTraceChrome));
+    
+      // user is looking off screen
       if(response == null) {
-          // user is looking off screen
           return;
       }
-      //var printString = 'x: ' + response.x + ', y: ' + response.y + ', result: ' + response.result + ', url: ' + iTraceChrome.currentUrl;
       var sessionDataItem = { filename: iTraceChrome.fileLocation, timestamp: response.time, current_timestamp: new Date().getTime(), x: response.x, y: response.y, area: response.result, line: response.line, word: response.word, tagname: response.tagname, id: response.id, url: iTraceChrome.currentUrl };
       iTraceChrome.sessionData.push(sessionDataItem);
 
@@ -80,6 +91,8 @@ window.iTraceChrome = {
         objectStore.add(sessionDataItem)
       }
   },
+
+  // writes the sessionData in XML and downloads the file, then resets sessionData and clears objectStore
   writeXMLData: function () {
       if (iTraceChrome.websocket != null) {
           iTraceChrome.websocket.close();
@@ -116,6 +129,9 @@ window.iTraceChrome = {
         objectStore.clear();
       }
   },
+
+  // if database data and sessionData are empty, this function will load the 
+  // indexed database data
   loadIndexedDBData: function(callback) {
     if(iTraceChrome.db && iTraceChrome.sessionData.length == 0) {
       var objectStore = iTraceChrome.db.transaction("sessionData").objectStore("sessionData");
@@ -125,17 +141,19 @@ window.iTraceChrome = {
       }
     }
   },
+  
+  // this function deals with incoming eyegaze data
   webSocketHandler: function(e) {
-    // deal with incoming eyegaze data
-
     var eyeGazeData = e.data;
 
+    // sets the file's location upon session start
     if (eyeGazeData.substring(0, eyeGazeData.indexOf(',')) == 'session_start'){
       var tmp = eyeGazeData.substring(eyeGazeData.indexOf(',') + 1);
       tmp = tmp.substring(tmp.indexOf(',') + 1);
       iTraceChrome.fileLocation = tmp.substring(0, tmp.indexOf(','));
       return;
     }
+    // if session is no longer active, then set iTraceChrome's active status to false
     else if(eyeGazeData.substring(0, eyeGazeData.indexOf(',')) == "session_end") {
       iTraceChrome.isActive = false;
     }
@@ -190,16 +208,23 @@ window.iTraceChrome = {
         });
     }
   },
+
+  // this retrieve's the browser's x coordinate
   getBrowserX: function(result) {
       console.log('browserX');
       console.log(result);
       this.browserX = result[0];
   },
+
+  // this retrieve's the browser's y coordinate
   getBrowserY: function(result) {
       console.log('browserY');
       console.log(result);
       this.browserY = result[0];
   },
+
+  // this function begins a session, which binds the browser's x and y coordinates, initializes and
+  // binds new websocket, sets status to active then listens for eye gaze data from the server
   startSession: function(tabs, callback) {
     iTraceChrome.tab = tabs[0];
     console.log('START SESSION');
@@ -221,6 +246,9 @@ window.iTraceChrome = {
     iTraceChrome.isActive = true;
     callback(iTraceChrome.websocket);
   },
+
+  // this functions opens the iTrace database, upon successfully opening the database it
+  // calls writeXMLData based on the current state of sessionData that's in objectStore
   initializeIndxedDB: function() {
     if(!window.indexedDB || iTraceChrome.db) {
       return;
@@ -250,6 +278,8 @@ window.iTraceChrome = {
       }
     }
   },
+
+  // initializing iTraceChrome
   initialize: function() {
     if(iTraceChrome.isInitialized) {
       return;

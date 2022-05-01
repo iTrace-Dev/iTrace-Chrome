@@ -1,4 +1,6 @@
 console.log('Developer Profile Script Started');
+
+// listens for data from different GitHub profile attributes then sends a response based on its results
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     const elements = document.elementsFromPoint(msg.x, msg.y);
     let sentResult = false;
@@ -71,12 +73,10 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
             sendResponse({ result: `ContributionActivity-`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
             return;
         }
-        
     }
     if (!sentResult) {
         sendResponse(null);
     }
-
 
     // Still need to check: Profile label, URL pattern matching, contribution activity entry, organizations, counters
 });
