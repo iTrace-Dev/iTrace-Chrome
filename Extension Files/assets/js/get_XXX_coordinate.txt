@@ -1,0 +1,39 @@
+/* Example code for finding the token user is gazing at used inside get_XXX_Coordinate.js
+	
+	function findToken(parentElt, x, y) {
+		console.log(parentElt.nodeName);
+		if (parentElt.nodeName !== '#text') {
+			console.log('didn\'t look on text node');
+			return null;
+		}
+		var range = document.createRange();
+		var words = parentElt.textContent.split(/( |\t)+/);
+		var start = 0;
+		var end = 0;
+
+		for (var i = 0; i < words.length; i++) {
+			var word = words[i];
+			end = start+word.length;
+			range.setStart(parentElt, start);
+			range.setEnd(parentElt, end);
+			// not getBoundingClientRect as word could wrap
+			var rects = range.getClientRects();
+			var clickedRect = isGazeInRects(rects);
+			if (clickedRect) {
+				return [word, start, clickedRect];
+			}
+			start = end + 1;
+		}
+		
+		function isGazeInRects(rects) {
+			for (var i = 0; i < rects.length; ++i) {
+				var r = rects[i]
+				if (r.left<x && r.right>x && r.top<y && r.bottom>y) {            
+					return r;
+				}
+			}
+			return false;
+		}
+		return null;
+    }
+*/

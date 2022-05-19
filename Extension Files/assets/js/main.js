@@ -1,3 +1,23 @@
+/****************************************************************************************************************************
+ ****************************
+ * @file FILE.EXT
+ * 
+ * @copyright (C) 2022 i-trace.org
+ * 
+ * This file is part of iTrace Infrastructure http://www.i-trace.org/.
+ * iTrace Infrastructure is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
+ * License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
+ * version.
+ * 
+ * iTrace Infrastructure is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the
+ * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License
+ * for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along with iTrace Infrastructure. If not, see
+ * https://www.gnu.org/licenses/.
+ ************************************************************************************************************************
+ ********************************/
+
 // main JavaScript driver for the iTrace-Chrome plugin, all data will be handled here
 this.isActive = false;
 this.sessionData = [];
@@ -11,9 +31,7 @@ if(iTraceChrome.isInitialized == false) {
     iTraceChrome.initialize(); //initializing if it's not initialized
 }
 
-/*
-	This function displays the HTML text upon its status
-*/
+/* This function displays the HTML text upon its status*/
 function afterSessionSetup(websocket) {    
     $("#session_status").html("Session Started - Attempting To Connect");
   
@@ -41,44 +59,3 @@ $(document).ready(function() {
         $("#session_status").html("Session Started - Connected");
     }
 });
-
-/* Example code for finding the token user is gazing at used inside get_XXX_Coordinate.js
-
-	
-	function findToken(parentElt, x, y) {
-		console.log(parentElt.nodeName);
-		if (parentElt.nodeName !== '#text') {
-			console.log('didn\'t look on text node');
-			return null;
-		}
-		var range = document.createRange();
-		var words = parentElt.textContent.split(/( |\t)+/);
-		var start = 0;
-		var end = 0;
-
-		for (var i = 0; i < words.length; i++) {
-			var word = words[i];
-			end = start+word.length;
-			range.setStart(parentElt, start);
-			range.setEnd(parentElt, end);
-			// not getBoundingClientRect as word could wrap
-			var rects = range.getClientRects();
-			var clickedRect = isGazeInRects(rects);
-			if (clickedRect) {
-				return [word, start, clickedRect];
-			}
-			start = end + 1;
-		}
-		
-		function isGazeInRects(rects) {
-			for (var i = 0; i < rects.length; ++i) {
-				var r = rects[i]
-				if (r.left<x && r.right>x && r.top<y && r.bottom>y) {            
-					return r;
-				}
-			}
-			return false;
-		}
-		return null;
-    }
-*/
