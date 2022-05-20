@@ -145,6 +145,8 @@ window.iTraceChrome = {
     iTraceChrome.fileLocation = "";
 
     if (iTraceChrome.db) {
+      // objectStore is the (temporary) bridge that allows us to get the local data that is locally stored
+      // in the iTraceChrome object
       var objectStore = iTraceChrome.db.transaction(["sessionData"], "readwrite").objectStore("sessionData");
       objectStore.clear();
     }
