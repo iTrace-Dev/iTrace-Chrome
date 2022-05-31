@@ -12,6 +12,7 @@
 * Make sure you have ```iTrace-Core``` up and running.
 * Start Google Chrome, and launch one of the following websites:
     - www.google.com
+    - www.github.com
     - www.stackoverflow.com
     - www.stackoverflow.com/questions [Could be any question for stack overflow]
     - bugzilla
