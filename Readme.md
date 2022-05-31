@@ -1,4 +1,4 @@
-### Setting up iTrace-Chrome extension
+### Setting up iTrace-Chrome extension from source
 (This is only done once as long as you are consistent with the extension location. If you change the folder, you need to re-setup.)
 * Clone the repository [iTrace-Chrome].
 * Start Google Chrome, and click on ```menu -> tools -> Extensions```.
