@@ -22,6 +22,7 @@ console.log('Github List of Pull Requests Script Started');
 
 // looks at list of pull requests and logs its data
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
+  if (msg.text == 'get_github_pr_coordinate'){
     const elements = document.elementsFromPoint(msg.x, msg.y);
     let sentResult = false;
     for (element of elements) {
@@ -45,41 +46,33 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
         sendResponse({ result: `ChecklistItem-`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
         return;
       }
-      // if (element.tagName === 'A' && element.classList.contains('participant-avatar')) {
-      //   console.log("participant")
-      //   sentResult = true;
-      //   const user = element.attributes.getNamedItem('data-hovercard-url').value.split('/')[2];
-      //   console.log(user);
-      //   sendResponse({ result: `Participant-${user}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
-      //   return; 
-      // }
 
       // Number of files changed
       if (element.id === 'files_tab_counter') {
         console.log('# of files changed');
         sentResult = true;
-        sendResponse({ result: `NumOfFilesChanged-${element.innerHTML.trim()}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
+        sendResponse({ result: `NumOfFilesChanged-${element.textContent.trim()}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
         return;
       }
       // Number of checks
       if (element.id === 'checks_tab_counter') {
         console.log('# Checks');
         sentResult = true;
-        sendResponse({ result: `NumOfChecks-${element.innerHTML.trim()}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
+        sendResponse({ result: `NumOfChecks-${element.textContent.trim()}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
         return;
       }
       // Number of commits
       if (element.id === 'commits_tab_counter') {
         console.log('# Commits');
         sentResult = true;
-        sendResponse({ result: `NumOfCommits-${element.innerHTML.trim()}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
+        sendResponse({ result: `NumOfCommits-${element.textContent.trim()}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
         return;
       }
       // Number of conversations
       if (element.id === 'conversation_tab_counter') {
         console.log('# Conversations');
         sentResult = true;
-        sendResponse({ result: `NumOfConversationComments-${element.innerHTML.trim()}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
+        sendResponse({ result: `NumOfConversationComments-${element.textContent.trim()}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
         return;
       }
       // Number of total diffs
@@ -103,31 +96,27 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
       if (element.tagName === 'TD' && element.classList.contains('blob-code-deletion')) {
         console.log('Deleted Line of Code');
         let lineNumber = 0;
-        if (element.attributes.getNamedItem('data-line-number')) {
-          lineNumber = element.attributes.getNamedItem('data-line-number').value;
-        }  
+        lineNumber = element.previousElementSibling.attributes.getNamedItem('data-line-number').value;  
         sentResult = true;
-        sendResponse({ result: `DeletedLOC-${lineNumber}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
+        sendResponse({ result: `DeletedLOC-${lineNumber}`, x: msg.x, y: msg.y, time: msg.time, id:element.id, url: msg.url });
         return;
       }
+
       // Added line of code
       if (element.tagName === 'TD' && element.classList.contains('blob-code-addition')) {
         console.log('Added Line of Code');
         let lineNumber = 0;
-        if (element.attributes.getNamedItem('data-line-number')) {
-          lineNumber = element.attributes.getNamedItem('data-line-number').value;
-        }
+        lineNumber = element.previousElementSibling.attributes.getNamedItem('data-line-number').value;
         sentResult = true;
         sendResponse({ result: `AddedLOC-${lineNumber}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
         return;
       }
+
       // Unchanged line of code
       if (element.tagName === 'TD' && element.classList.contains('blob-code-context')) {
         console.log('Unchanged Line of Code');
         let lineNumber = 0;
-        if (element.attributes.getNamedItem('data-line-number')) {
-          lineNumber = element.attributes.getNamedItem('data-line-number').value;
-        } 
+        lineNumber = element.previousElementSibling.attributes.getNamedItem('data-line-number').value; 
         sendResponse({ result: `UnchangedLOC-${lineNumber}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
         return;
       }
@@ -270,4 +259,5 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     if (!sentResult) {
         sendResponse(null);
     }
+  }
 });

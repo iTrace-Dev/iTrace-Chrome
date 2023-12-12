@@ -6,40 +6,8 @@
   "version": "0.0.1",
   "content_scripts": [
     {
-      "matches": ["*://stackoverflow.com/questions/*"],
-      "js": ["/assets/js/getSOCoordinate.js"]
-    },
-    {
-      "matches": ["*://bugs.eclipse.org/*", "*://bugzilla.mozilla.org/*", "*://bugzilla.kernel.org/*", "*://bz.apache.org/*"],
-      "js": ["/assets/js/getBZCoordinate.js"]
-    },
-    {
-      "matches": ["https://stackoverflow.com/*"],
-      "js": ["/assets/js/getSearchCoordinate.js"]
-    },
-    {
-      "matches": ["https://*.google.com/*"],
-      "js": ["/assets/js/getGoogleCoordinate.js"]
-    },
-    {
-      "matches": ["https://github.com/*/*/issues"],
-      "js": ["/assets/js/getGithubIssueListCoordinate.js"]
-    },
-    {
-      "matches": ["https://github.com/*/*/pulls"],
-      "js": ["/assets/js/getGithubPRListCoordinate.js"]
-    },
-    {
-      "matches": ["https://github.com/*/pull/*"],
-      "js": ["/assets/js/getGithubPullRequestCoordinate.js"]
-    },
-    {
-      "matches": ["https://github.com/*/"],
-      "js": ["/assets/js/getGithubDevProfileCoordinate.js"]
-    },
-    {
-      "matches": ["https://github.com/*tab*"],
-      "js": ["/assets/js/getGithubDevProfileCoordinate.js"]
+      "matches": ["*://github.com/*"],
+      "js": ["/assets/js/loader.js"]
     }
   ],
   "background": {
@@ -58,8 +26,5 @@
 	  "tabs",
     "activeTab",
     "downloads"
-  ],
-  "externally_connectable": {
-    "matches": ["*://*.stackoverflow.com/**", "https://stackoverflow.com/*"]
-  }
+  ]
 }
