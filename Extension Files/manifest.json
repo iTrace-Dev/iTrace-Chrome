@@ -1,5 +1,5 @@
 {
-  "manifest_version": 2,
+  "manifest_version": 3,
 
   "name": "iTrace-Chrome Plugin",
   "description": "Plugin which allows for tracking eyegaze data on webpages in Chrome.",
