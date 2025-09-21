@@ -17,7 +17,7 @@
  * https://www.gnu.org/licenses/.
  ************************************************************************************************************************
  ********************************/
-
+import("./jquery-3.3.1");
 // main JavaScript driver for the iTrace-Chrome plugin, all data will be handled here
 window.iTraceChrome = {
 
