@@ -93,9 +93,7 @@ window.iTraceChrome = {
   // this function takes the data from the session and adds it to the iTraceChrome's sessionData attribute
   // and stores it in objectStore
   printResults: function (response) {
-    chrome.tabs.getSelected(null, function (tab) {
-      this.currentUrl = tab.url;
-    }.bind(iTraceChrome));
+    chrome.tabs.query({ active: true, currentWindow: true}).then((tabs) => {iTraceChrome.currentUrl = tabs[0].url;});
 
     // user is looking off screen
     if (response == null) {
@@ -198,35 +196,107 @@ window.iTraceChrome = {
     } else {
       // user is looking in the html viewport
       // need to check which website the user is looking at
-      chrome.tabs.query({ 'active': true }, function (tabs) {
-        var url = iTraceChrome.tab.url;
-        if (url.includes('stackoverflow.com/questions/')) {
-          chrome.tabs.sendMessage(iTraceChrome.id, { text: 'get_so_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url }, iTraceChrome.printResults);
-        }
-        if (url.includes('https://bug')) { // NOTE: This include may be incorect, will need to do some more research
-          chrome.tabs.sendMessage(iTraceChrome.id, { text: 'get_bz_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url }, iTraceChrome.printResults);
-        }
-        if (url.includes('stackoverflow.com/search')) {
-          chrome.tabs.sendMessage(iTraceChrome.id, { text: 'get_search_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url }, iTraceChrome.printResults);
-        }
-        if (url.includes('google.com')) {
-          chrome.tabs.sendMessage(iTraceChrome.id, { text: 'get_google_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url }, iTraceChrome.printResults);
-        }
-        if (url.includes('github.com/*/* /issues')) {
-          chrome.tabs.sendMessage(iTraceChrome.id, { text: 'get_github_issues_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url }, iTraceChrome.printResults);
-        }
-        if (url.includes('github.com/*/*/pulls')) {
-          chrome.tabs.sendMessage(iTraceChrome.id, { text: 'get_github_prlist_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url }, iTraceChrome.printResults);
-        }
-        if (url.includes('github.com/*/*/pull')) {
-          chrome.tabs.sendMessage(iTraceChrome.id, { text: 'get_github_pr_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url }, iTraceChrome.printResults);
-        }
-        if (url.includes('github.com') && url.includes('pull')) {
-          chrome.tabs.sendMessage(iTraceChrome.id, { text: 'get_github_pr_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url }, iTraceChrome.printResults);
-        }
-        if (url.includes('github.com/')) {
-          chrome.tabs.sendMessage(iTraceChrome.id, { text: 'get_github_dev_profile_coordinate', x: coords.x, y: coords.y, time: timeStamp, url: url }, iTraceChrome.printResults);
-        }
+      chrome.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
+          let url = tabs[0].url;
+          if (url.includes('stackoverflow.com/questions/')) {
+              chrome.tabs.sendMessage(iTraceChrome.id, {
+                  text: 'get_so_coordinate',
+                  x: coords.x,
+                  y: coords.y,
+                  time: timeStamp,
+                  url: url
+              }).then(response => {
+                  iTraceChrome.printResults(response);
+              });
+          }
+          if (url.includes('https://bug')) { // NOTE: This include may be incorect, will need to do some more research
+              chrome.tabs.sendMessage(iTraceChrome.id, {
+                  text: 'get_bz_coordinate',
+                  x: coords.x,
+                  y: coords.y,
+                  time: timeStamp,
+                  url: url
+              }).then(response => {
+                  iTraceChrome.printResults(response);
+              });
+          }
+          if (url.includes('stackoverflow.com/search')) {
+              chrome.tabs.sendMessage(iTraceChrome.id, {
+                  text: 'get_search_coordinate',
+                  x: coords.x,
+                  y: coords.y,
+                  time: timeStamp,
+                  url: url
+              }).then(response => {
+                  iTraceChrome.printResults(response);
+              });
+          }
+          if (url.includes('google.com')) {
+              chrome.tabs.sendMessage(iTraceChrome.id, {
+                  text: 'get_google_coordinate',
+                  x: coords.x,
+                  y: coords.y,
+                  time: timeStamp,
+                  url: url
+              }).then(response => {
+                  iTraceChrome.printResults(response);
+              });
+          }
+          if (url.includes('github.com/*/* /issues')) {
+              chrome.tabs.sendMessage(iTraceChrome.id, {
+                  text: 'get_github_issues_coordinate',
+                  x: coords.x,
+                  y: coords.y,
+                  time: timeStamp,
+                  url: url
+              }).then(response => {
+                  iTraceChrome.printResults(response);
+              });
+          }
+          if (url.includes('github.com/*/*/pulls')) {
+              chrome.tabs.sendMessage(iTraceChrome.id, {
+                  text: 'get_github_prlist_coordinate',
+                  x: coords.x,
+                  y: coords.y,
+                  time: timeStamp,
+                  url: url
+              }).then(response => {
+                  iTraceChrome.printResults(response);
+              });
+          }
+          if (url.includes('github.com/*/*/pull')) {
+              chrome.tabs.sendMessage(iTraceChrome.id, {
+                  text: 'get_github_pr_coordinate',
+                  x: coords.x,
+                  y: coords.y,
+                  time: timeStamp,
+                  url: url
+              }).then(response => {
+                  iTraceChrome.printResults(response);
+              });
+          }
+          if (url.includes('github.com') && url.includes('pull')) {
+              chrome.tabs.sendMessage(iTraceChrome.id, {
+                  text: 'get_github_pr_coordinate',
+                  x: coords.x,
+                  y: coords.y,
+                  time: timeStamp,
+                  url: url
+              }).then(response => {
+                  iTraceChrome.printResults(response);
+              });
+          }
+          if (url.includes('github.com/')) {
+              chrome.tabs.sendMessage(iTraceChrome.id, {
+                  text: 'get_github_dev_profile_coordinate',
+                  x: coords.x,
+                  y: coords.y,
+                  time: timeStamp,
+                  url: url
+              }).then(response => {
+                  iTraceChrome.printResults(response);
+              });
+          }
       });
     }
   },
@@ -251,13 +321,19 @@ window.iTraceChrome = {
     iTraceChrome.tab = tabs[0];
     console.log('START SESSION');
 
-    chrome.tabs.executeScript({
-      'code': 'window.innerHeight'
-    }, iTraceChrome.getBrowserX.bind(iTraceChrome));
+    chrome.scripting.executeScript({
+      target: { tabId: iTraceChrome.id },
+      func: () => window.innerHeight
+    }).then(([result]) => {
+      iTraceChrome.getBrowserX(result.result);
+    });
 
-    chrome.tabs.executeScript({
-      'code': 'window.innerWidth'
-    }, iTraceChrome.getBrowserY.bind(iTraceChrome));
+    chrome.scripting.executeScript({
+      target: { tabId: iTraceChrome.id },
+      func: () => window.innerHeight
+    }).then(([result]) => {
+      iTraceChrome.getBrowserY(result.result);
+    });
 
     iTraceChrome.id = iTraceChrome.tab.id;
 

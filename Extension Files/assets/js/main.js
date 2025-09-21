@@ -46,9 +46,7 @@ function afterSessionSetup(websocket) {
 
 $(document).ready(function() {
     $("#start_session").on("click", function(event) {
-        chrome.tabs.query({active: true, currentWindow:true}, function(tabs) {
-            iTraceChrome.startSession(tabs, afterSessionSetup);
-        });
+        chrome.tabs.query({ active: true, currentWindow: true}).then((tabs) => {iTraceChrome.startSession(tabs, afterSessionSetup);});
     });
     
     $("#write_xml").on("click", function(event) {
