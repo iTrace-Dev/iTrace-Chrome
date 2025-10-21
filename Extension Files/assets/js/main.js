@@ -26,34 +26,40 @@ this.currentUrl = "";
 var _this = this;
 debugger;
 
-var iTraceChrome = chrome.extension.getBackgroundPage().iTraceChrome;
-if(iTraceChrome.isInitialized == false) {
-    iTraceChrome.initialize(); //initializing if it's not initialized
-}
 
-/* This function displays the HTML text upon its status*/
-function afterSessionSetup(websocket) {    
-    $("#session_status").html("Session Started - Attempting To Connect");
-  
-    websocket.onopen = function() {
-        $("#session_status").html("Session Started - Connected");
+chrome.runtime.sendMessage({ type: "isInitializedITraceChrome" }, (response) => {
+    if (!response) {
+        chrome.runtime.sendMessage({ type: "initializeITraceChrome" });
     }
-
-    websocket.onclose = function() {
-        $("#session_status").html("Not Connected To Core");
-    }
-}
+});
 
 $(document).ready(function() {
     $("#start_session").on("click", function(event) {
-        chrome.tabs.query({ active: true, currentWindow: true}).then((tabs) => {iTraceChrome.startSession(tabs, afterSessionSetup);});
+        chrome.tabs.query({ active: true, currentWindow: true}).then((tabs) => {chrome.runtime.sendMessage({ type: "startSessionITraceChrome", vars: [tabs] }, () => {
+            $("#session_status").html("Session Started - Attempting to Connect");
+        });});
     });
     
     $("#write_xml").on("click", function(event) {
-        iTraceChrome.writeXMLData();
+        chrome.runtime.sendMessage({ type: "writeXMLDataITraceChrome" });
     });
 
-    if (iTraceChrome.isActive) {
-        $("#session_status").html("Session Started - Connected");
+    chrome.runtime.sendMessage({ type: "getITraceChrome"}, (response) => {
+        if (response.isActive) {
+            $("#session_status").html("Session Started - Connected");
+        }
+    });
+});
+
+/* This listener displays the HTML text upon its status*/
+chrome.runtime.onMessage.addListener((message) => {
+    if (message.type === "websocketStatus") {
+        if (message.status === "connected") {
+            $("#session_status").html("Session Started - Connected");
+        } else if (message.status === "disconnected") {
+            $("#session_status").html("Not Connected To Core");
+        } else if (message.status === "error") {
+            $("#session_status").html("Connection Error: " + message.error);
+        }
     }
 });

@@ -17,17 +17,17 @@
  * https://www.gnu.org/licenses/.
  ************************************************************************************************************************
  ********************************/
-import("./jquery-3.3.1");
+// importScripts("jquery-3.3.1.js");
 // main JavaScript driver for the iTrace-Chrome plugin, all data will be handled here
-window.iTraceChrome = {
+const iTraceChrome = {
 
   // this function takes the x and y coordinates from the screen and the browser
   // to get the offset, which then returns the translated coordinates based off if the user
   // is looking in or outside the viewport
   translateCoordinates: function (x, y) {
     // screen dimensions
-    var screenX = screen.height;
-    var screenY = screen.width;
+    var screenX = screen.width;
+    var screenY = screen.height;
 
     var offsetX = screenX - iTraceChrome.browserX;
     var offsetY = screenY - iTraceChrome.browserY;
@@ -93,21 +93,22 @@ window.iTraceChrome = {
   // this function takes the data from the session and adds it to the iTraceChrome's sessionData attribute
   // and stores it in objectStore
   printResults: function (response) {
-    chrome.tabs.query({ active: true, currentWindow: true}).then((tabs) => {iTraceChrome.currentUrl = tabs[0].url;});
+    chrome.tabs.query({ active: true, currentWindow: true}).then((tabs) => {
+        iTraceChrome.currentUrl = tabs[0].url;
+        // user is looking off screen
+        if (response == null) {
+            return;
+        }
+        var sessionDataItem = { filename: iTraceChrome.fileLocation, timestamp: response.time, current_timestamp: new Date().getTime(), x: response.x, y: response.y, area: response.result, line: response.line, word: response.word, tagname: response.tagname, id: response.id, url: iTraceChrome.currentUrl };
+        iTraceChrome.sessionData.push(sessionDataItem);
 
-    // user is looking off screen
-    if (response == null) {
-      return;
-    }
-    var sessionDataItem = { filename: iTraceChrome.fileLocation, timestamp: response.time, current_timestamp: new Date().getTime(), x: response.x, y: response.y, area: response.result, line: response.line, word: response.word, tagname: response.tagname, id: response.id, url: iTraceChrome.currentUrl };
-    iTraceChrome.sessionData.push(sessionDataItem);
+        if (iTraceChrome.db != null) {
+            var transaction = iTraceChrome.db.transaction(["sessionData"], "readwrite");
 
-    if (iTraceChrome.db != null) {
-      var transaction = iTraceChrome.db.transaction(["sessionData"], "readwrite");
-
-      var objectStore = transaction.objectStore("sessionData");
-      objectStore.add(sessionDataItem)
-    }
+            var objectStore = transaction.objectStore("sessionData");
+            objectStore.add(sessionDataItem)
+        }
+    });
   },
 
   // writes the sessionData in XML and downloads the file, then resets sessionData and clears objectStore
@@ -242,7 +243,7 @@ window.iTraceChrome = {
                   iTraceChrome.printResults(response);
               });
           }
-          if (url.includes('github.com/*/* /issues')) {
+          if (url.includes('github.com/*/*/issues')) {
               chrome.tabs.sendMessage(iTraceChrome.id, {
                   text: 'get_github_issues_coordinate',
                   x: coords.x,
@@ -317,41 +318,49 @@ window.iTraceChrome = {
 
   // this function begins a session, which binds the browser's x and y coordinates, initializes and
   // binds new websocket, sets status to active then listens for eye gaze data from the server
-  startSession: function (tabs, callback) {
+  startSession: function (tabs) {
     iTraceChrome.tab = tabs[0];
+    iTraceChrome.id = iTraceChrome.tab.id;
     console.log('START SESSION');
 
-    chrome.scripting.executeScript({
-      target: { tabId: iTraceChrome.id },
-      func: () => window.innerHeight
-    }).then(([result]) => {
-      iTraceChrome.getBrowserX(result.result);
-    });
+      chrome.scripting.executeScript({
+          target: { tabId: iTraceChrome.id },
+          func: () => window.innerWidth
+      }).then((r) => iTraceChrome.getBrowserX([r[0].result]));
 
-    chrome.scripting.executeScript({
-      target: { tabId: iTraceChrome.id },
-      func: () => window.innerHeight
-    }).then(([result]) => {
-      iTraceChrome.getBrowserY(result.result);
-    });
-
-    iTraceChrome.id = iTraceChrome.tab.id;
+      chrome.scripting.executeScript({
+          target: { tabId: iTraceChrome.id },
+          func: () => window.innerHeight
+      }).then((r) => iTraceChrome.getBrowserY([r[0].result]));
 
     iTraceChrome.websocket = new WebSocket('ws://localhost:7007');
 
     // listen for eye gaze data coming from the server
     iTraceChrome.websocket.onmessage = iTraceChrome.webSocketHandler.bind(iTraceChrome);
     iTraceChrome.isActive = true;
-    callback(iTraceChrome.websocket);
+
+    chrome.runtime.sendMessage({ type: "websocketStatus", status: "attempting" });
+
+    iTraceChrome.websocket.onopen = () => {
+      chrome.runtime.sendMessage({ type: "websocketStatus", status: "connected" });
+    };
+    
+    iTraceChrome.websocket.onclose = () => {
+      chrome.runtime.sendMessage({ type: "websocketStatus", status: "disconnected" });
+    };
+    
+    iTraceChrome.websocket.onerror = (err) => {
+      chrome.runtime.sendMessage({ type: "websocketStatus", status: "error", error: err.message });
+    };
   },
 
   // this functions opens the iTrace database, upon successfully opening the database it
   // calls writeXMLData based on the current state of sessionData that's in objectStore
   initializeIndxedDB: function () {
-    if (!window.indexedDB || iTraceChrome.db) {
+    if (!indexedDB || iTraceChrome.db) {
       return;
     }
-    var request = window.indexedDB.open("iTraceDB", 3);
+    var request = indexedDB.open("iTraceDB", 3);
     request.onerror = function (event) {
       console.log("Couldn't open indexedDB instance. Won't back up along the way");
     }
@@ -393,3 +402,18 @@ window.iTraceChrome = {
   currentUrl: "",
   db: null
 }
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.type === "isInitializedITraceChrome") {
+        sendResponse(iTraceChrome.isInitialized);
+    }
+    if (message.type === "initializeITraceChrome") {
+        iTraceChrome.initialize()
+    }
+    if (message.type === "writeXMLDataITraceChrome") {
+        iTraceChrome.writeXMLData();
+    }
+    if (message.type === "startSessionITraceChrome") {
+        iTraceChrome.startSession(message.vars[0], message.vars[1]);
+    }
+});
