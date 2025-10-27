@@ -44,8 +44,8 @@ $(document).ready(function() {
         chrome.runtime.sendMessage({ type: "writeXMLDataITraceChrome" });
     });
 
-    chrome.runtime.sendMessage({ type: "getITraceChrome"}, (response) => {
-        if (response.isActive) {
+    chrome.runtime.sendMessage({ type: "isActiveITraceChrome"}, (response) => {
+        if (response) {
             $("#session_status").html("Session Started - Connected");
         }
     });
