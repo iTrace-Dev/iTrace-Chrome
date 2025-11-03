@@ -100,7 +100,7 @@ const iTraceChrome = {
         chrome.tabs.query({active: true, currentWindow: true}).then((tabs) => {
             iTraceChrome.currentUrl = tabs[0].url;
             // user is looking off screen
-            if (response == null) {
+            if (!response || response.result == null) {
                 return;
             }
             var sessionDataItem = {
@@ -133,31 +133,32 @@ const iTraceChrome = {
             iTraceChrome.websocket.close();
         }
 
-        console.log('HELLO!?!?!');
-
         var sessionsData = iTraceChrome.groupByFilename(iTraceChrome.sessionData);
-        
+
         console.log(sessionsData.length);
 
         for (var file in sessionsData) {
             // call method to parse JSON to xml string, then write to file
+            if (!file || file === "undefined") continue;
             var xmlString = iTraceChrome.json2xml(sessionsData[file]);
-
-            // create blob with url for chrome.downloads api
             var xmlBlob = new Blob([xmlString], {type: "text/xml"});
-            var url = URL.createObjectURL(xmlBlob);
 
-            var filePath = "chrome_plugin_data.xml";
-            if (file != "") {
-                filePath = "itrace_chrome_" + file + ".xml";
-            }
-            // download file
-            // currently defaults to downloading to the device's download folder
-            // can be changed to any path in local storage
-            chrome.downloads.download({
-                url: url,
-                filename: filePath
-            });
+            var reader = new FileReader();
+            reader.onload = function () {
+                var dataUrl = reader.result;
+
+                var filePath = "chrome_plugin_data.xml";
+                if (file != "") {
+                    filePath = "itrace_chrome_" + file + ".xml";
+                }
+
+                chrome.downloads.download({
+                    url: dataUrl,
+                    filename: filePath
+                });
+            };
+            reader.readAsDataURL(xmlBlob);
+
         }
 
         iTraceChrome.sessionData = [];
@@ -254,10 +255,6 @@ const iTraceChrome = {
                     });
                 }
                 if (url.includes('google.com')) {
-                    chrome.scripting.executeScript({
-                        target: {tabId: iTraceChrome.id},
-                        files: ['/assets/js/getGoogleCoordinate.js']
-                    });
                     chrome.tabs.sendMessage(iTraceChrome.id, {
                         text: 'get_google_coordinate',
                         x: coords.x,
