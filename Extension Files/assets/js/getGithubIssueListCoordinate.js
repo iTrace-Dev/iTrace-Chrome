@@ -46,7 +46,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
             element.hasAttribute("data-hovercard-type")
         ) {
             const type = element.getAttribute("data-hovercard-type");
-
+            // This may need to be changed to include project names
             if (type === "organization") {
                 console.log("Project/Organization Name");
 
@@ -54,7 +54,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
 
                 sentResult = true;
                 sendResponse({
-                    result: `ProjectName-${organization}`,
+                    result: `OrganizationName-${organization}`,
                     x: msg.x,
                     y: msg.y,
                     time: msg.time,
@@ -76,6 +76,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 });
                 return;
             } else if (type === 'issue') {
+                // Issue links do not have a data-hovercard-type
                 console.log('issue link')
                 const issue = element.innerHTML;
                 sentResult = true;
@@ -90,6 +91,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 return;
             } else if (type.includes
             ("comments")) {
+                // ISSUES do not have urls... and do not have data-hovercards
                 const numberOfComments = element.attributes.getNamedItem('aria-label').value;
                 sentResult = true;
                 sendResponse({
@@ -138,6 +140,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
             });
             return;
         }
+        // Works, though the taskprogress is literally just a <div /> that is really long lol
         if (element.closest('[data-listview-component="trailing-badge"]') &&
             /\d+\s*\/\s*\d+/.test(element.textContent)) {
             console.log('Task progress bar')

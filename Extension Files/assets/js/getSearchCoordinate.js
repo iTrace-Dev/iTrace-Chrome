@@ -20,6 +20,9 @@
 
 // Listen for messages - logs and sends response based on search result, currently listesn for a question and its summary,
 // a vote and its count, and a summary
+
+console.log('Get Google Coordinates Script Started');
+
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     var elements = document.elementsFromPoint(msg.x, msg.y);
 

@@ -41,7 +41,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             console.log('[ContentScript] Matched search title');
             responseData = {
                 result: 'search title',
-                text: element.textContent,
+                word: element.textContent,
                 url: msg.url,
                 time: msg.time,
                 x: msg.x,
@@ -54,7 +54,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             console.log('[ContentScript] Matched search description');
             responseData = {
                 result: 'search description',
-                text: element.textContent,
+                word: element.textContent,
                 url: msg.url,
                 time: msg.time,
                 x: msg.x,
