@@ -62,7 +62,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                     url: msg.url
                 });
                 return;
-            }else if (type === 'user') {
+            } else if (type === 'user') {
                 console.log('user link')
                 const user = element.innerHTML;
                 sentResult = true;
@@ -75,23 +75,32 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                     url: msg.url
                 });
                 return;
-            } else if (type === 'issue') {
-                // Issue links do not have a data-hovercard-type
-                console.log('issue link')
-                const issue = element.innerHTML;
-                sentResult = true;
-                sendResponse({
-                    result: `Issue-${issue}`,
-                    x: msg.x,
-                    y: msg.y,
-                    time: msg.time,
-                    id: element.id,
-                    url: msg.url
-                });
-                return;
-            } else if (type.includes
-            ("comments")) {
-                // ISSUES do not have urls... and do not have data-hovercards
+            } 
+        }
+
+        if (
+            element.tagName === "A" &&
+            element.getAttribute("data-testid") === "issue-pr-title-link"
+        ) {
+            console.log('issue link')
+            const title = element.textContent.trim();
+            sentResult = true;
+            sendResponse({
+                result: `Issue-${title}`,
+                x: msg.x,
+                y: msg.y,
+                time: msg.time,
+                id: element.id,
+                url: msg.url
+            });
+            return;
+        }
+
+        if (
+            element.hasAttribute("aria-label")
+        ) {
+            const label = element.getAttribute("aria-label");
+            if (/comment/.test(label)) {
                 const numberOfComments = element.attributes.getNamedItem('aria-label').value;
                 sentResult = true;
                 sendResponse({
