@@ -20,6 +20,9 @@
 
 // Listen for messages, (stackoverflow) currently listens for code, images, the post's text
 // the post's tags, and the question itself, it also logs and sends a response based on the result/data
+
+console.log('Get SO Questions Coordinates Script Started');
+
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     var questionElement = document.getElementById('question');
     var answerElements = document.getElementById('answers').children;

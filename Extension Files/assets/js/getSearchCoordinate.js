@@ -21,7 +21,7 @@
 // Listen for messages - logs and sends response based on search result, currently listesn for a question and its summary,
 // a vote and its count, and a summary
 
-console.log('Get Google Coordinates Script Started');
+console.log('Get SO Search Coordinates Script Started');
 
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     var elements = document.elementsFromPoint(msg.x, msg.y);
@@ -40,11 +40,11 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     var sentResult = false;
     // console.log('Hello');
     for (element of elements) {
-        if (element.classList.contains('question-summary search-result')) {
-            console.log('question summary-search');
+        if (element.classList.contains('answer-hyperlink')) {
+            console.log('answer-hyperlink');
             sentResult = true;
             sendResponse({
-                result: 'question summary-search',
+                result: 'answer-hyperlink',
                 x: msg.x,
                 y: msg.y,
                 time: msg.time,
