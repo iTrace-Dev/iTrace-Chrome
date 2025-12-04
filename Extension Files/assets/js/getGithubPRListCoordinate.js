@@ -18,140 +18,158 @@
  ************************************************************************************************************************
  ********************************/
 
-console.log('Github Pull Requests Script Started');
 
-// looks at a specific pull request and listen/logs the data and things associated with pull requests
+console.log('Github List of Pull Requests Script Started');
+// looks at list of pull requests and logs its data
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
-    const elements = document.elementsFromPoint(msg.x, msg.y);
-    let sentResult = false;
-    for (element of elements) {
-        if(element.tagName === 'A' && element.classList.contains('text-red')) {
-          console.log("Travis CI Failure")
-          sentResult = true;
-          sendResponse({ result: `CITests-Failing`, x: msg.x, y: msg.y, time: msg.time, url: msg.url });
-          return;
-        }
-        if(element.tagName === 'A' && element.classList.contains('text-green')) {
-            console.log("Travis CI Passing")
-            sentResult = true;
-            sendResponse({ result: `CITests-Passing`, x: msg.x, y: msg.y, time: msg.time, url: msg.url });
-            return;
-        }
-        if (element.classList.contains('btn-link') && element.innerHTML.includes('Open') && element.tagName === 'A') {
-            console.log("Number of PRs open");
-            const numberOpen = element.innerHTML;
-            sentResult = true;
-            sendResponse({ result: `NumPROpen-${numberOpen}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
-            return;
-        }
-        if (element.classList.contains('url') && element.classList.contains('fn') && element.tagName === 'A') {
-            if (!element.attributes.getNamedItem('data-hovercard-type')) {
+    try {
+        const x = msg.x;
+        const y = msg.y;
+        const elements = document.elementsFromPoint(x, y) || [];
+
+        for (const element of elements) {
+            if (!element) continue;
+
+            // NumPROpen
+            if (element.classList && element.classList.contains('btn-link') && element.innerHTML && element.innerHTML.includes('Open') && element.tagName === 'A') {
+                const numberOpen = element.textContent.trim();
+                sendResponse({ result: `NumPROpen-${numberOpen}`, x: x, y: y, time: msg.time, id: element.id || null, url: msg.url || location.href });
                 return;
-            } 
-            if (element.attributes.getNamedItem('data-hovercard-type') === 'organization') {
-                console.log("Project/Organization Name");
-                const organization = element.innerHTML;
-                sentResult = true;
-                sendResponse({ result: `ProjectName - ${organization}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
+            }
+
+            // NumPRClosed
+            if (element.classList && element.classList.contains('btn-link') && element.innerHTML && element.innerHTML.includes('Closed') && element.tagName === 'A') {
+                const numClosed = element.textContent.trim();
+                sendResponse({ result: `NumPRClosed-${numClosed}`, x: x, y: y, time: msg.time, id: element.id || null, url: msg.url || location.href });
+                return;
+            }
+
+            // Organization (legacy org link)
+            if (element.classList && element.classList.contains('url') && element.classList.contains('fn') && element.tagName === 'A') {
+                const attr = element.getAttribute('data-hovercard-type');
+                if (attr === 'organization') {
+                    const organization = element.textContent.trim();
+                    sendResponse({ result: `Organization - ${organization}`, x: x, y: y, time: msg.time, id: element.id || null, url: msg.url || location.href });
+                    return;
+                }
+            }
+
+            // ProjectName
+            if (element.tagName === 'A') {
+                const projNode = element.closest && element.closest('strong[itemprop="name"]');
+                if (projNode) {
+                    const projectName = element.textContent.trim();
+                    sendResponse({ result: `ProjectName - ${projectName}`, x: x, y: y, time: msg.time, id: element.id || null, url: msg.url || location.href });
+                    return;
+                }
+            }
+
+            // NumOfStarred
+            if (element.tagName === 'A') {
+                const starCounter = element.querySelector && element.querySelector('#repo-stars-counter-star, .js-social-count, .Counter.js-social-count');
+                if (starCounter) {
+                    const numberStarred = starCounter.textContent.trim();
+                    sendResponse({ result: `NumOfStarred-${numberStarred}`, x: x, y: y, time: msg.time, id: starCounter.id || element.id || null, url: msg.url || location.href });
+                    return;
+                }
+            }
+
+            // NumOfForked
+            if (element.tagName === 'A') {
+                const forkCounter = element.querySelector && element.querySelector('#repo-network-counter, .Counter, .Counter.js-social-count');
+                if (forkCounter && (forkCounter.id === 'repo-network-counter' || forkCounter.classList.contains('Counter') || forkCounter.classList.contains('js-social-count'))) {
+                    const numberForked = forkCounter.textContent.trim();
+                    sendResponse({ result: `NumOfForked-${numberForked}`, x: x, y: y, time: msg.time, id: forkCounter.id || element.id || null, url: msg.url || location.href });
+                    return;
+                }
+            }
+
+            // Username
+            if (element.tagName === 'A') {
+                const hoverType = element.getAttribute && element.getAttribute('data-hovercard-type');
+                if (hoverType === 'user') {
+                    const username = element.textContent.trim();
+                    if (username) {
+                        sendResponse({ result: `Username-${username}`, x: x, y: y, time: msg.time, id: element.id || null, url: msg.url || location.href });
+                        return;
+                    }
+                }
+            }
+
+            // PullRequest link
+            if (element.tagName === 'A') {
+                const hover = element.getAttribute && element.getAttribute('data-hovercard-type');
+                if (hover === 'pull_request') {
+                    const title = element.textContent.trim();
+                    const href = element.getAttribute('href') || '';
+                    const m = href.match(/\/pull\/(\d+)(?:\/|$)/);
+                    const prNumber = m ? m[1] : null;
+                    const res = { result: `PullRequest-${prNumber ? ('#' + prNumber + ' ') : ''}${title}`, x: x, y: y, time: msg.time, id: element.id || null, url: msg.url || location.href };
+                    sendResponse(res);
+                    return;
+                }
+            }
+
+            // NumOfComments
+            if (element.tagName === 'A') {
+                const ariaAttr = element.getAttribute && element.getAttribute('aria-label');
+                if (ariaAttr && ariaAttr.toLowerCase().includes('comment')) {
+                    const numberOfComments = ariaAttr;
+                    sendResponse({ result: `NumOfComments-${numberOfComments}`, x: x, y: y, time: msg.time, url: msg.url || location.href });
+                    return;
+                }
+            }
+
+            // PR status: review required / approvals / changes requested
+            if (element.tagName === 'A') {
+                const aria = (element.getAttribute('aria-label') || '').toLowerCase();
+                if (aria.includes('review required')) {
+                    sendResponse({ result: `PRStatus-Review Required`, x: x, y: y, time: msg.time, id: element.id || null, url: msg.url || location.href });
+                    return;
+                }
+                if (aria.includes('review approval') || aria.includes('review approvals') || /\d+\s+review\s+approvals?/.test(aria)) {
+                    sendResponse({ result: `PRStatus-Approval`, x: x, y: y, time: msg.time, id: element.id || null, url: msg.url || location.href });
+                    return;
+                }
+                if (aria.includes('requesting changes') || aria.includes('changes requested') || aria.includes('request changes')) {
+                    sendResponse({ result: `PRStatus-Changes Requested`, x: x, y: y, time: msg.time, id: element.id || null, url: msg.url || location.href });
+                    return;
+                }
+            }
+
+            // Time opened (relative-time element)
+            if (element.tagName === 'RELATIVE-TIME') {
+                const opened = element.innerHTML;
+                const timestamp = (element.getAttribute && element.getAttribute('title')) || null;
+                sendResponse({ result: `PullRequestOpened-${opened}${timestamp ? (' on ' + timestamp) : ''}`, x: x, y: y, time: msg.time, id: element.id || null, url: msg.url || location.href });
+                return;
+            }
+
+            // Task progress count
+            if (element.classList && element.classList.contains('task-progress-counts')) {
+                const taskProgress = element.innerHTML;
+                sendResponse({ result: `TaskCompletion-${taskProgress}`, x: x, y: y, time: msg.time, id: element.id || null, url: msg.url || location.href });
                 return;
             }
         }
-        if (element.classList.contains('social-count') && element.tagName === 'A') {
-            const ariaLabel = element.attributes.getNamedItem('aria-label').value;
-            if (ariaLabel.includes('forked')) {
-                console.log('Number of users who have forked repository');
-                const numberForked = element.innerHTML;
-                sentResult = true;
-                sendResponse({ result: `NumOfForked-${numberForked}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
-                return;
-            } else if (ariaLabel.includes('watching')) {
-                console.log('Number of users who are watching repository');
-                const numberWatching = element.innerHTML;
-                sentResult = true;
-                sendResponse({ result: `NumOfWatching-${numberWatching}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
-                return;
-            } else if (ariaLabel.includes('starred')) {
-                console.log('Number of users who starred repository');
-                const numberStarred= element.innerHTML;
-                sentResult = true;
-                sendResponse({ result: `NumOfStarred-${numberStarred}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
-                return;
-            }
-        }
-        if (element.tagName === 'A' && element.attributes.getNamedItem("aria-label") && element.attributes.getNamedItem("aria-label").value.includes("comments")) {
-            console.log('Number of comments')
-            const numberOfComments = element.attributes.getNamedItem('aria-label').value;
-            sentResult = true;
-            sendResponse({ result: `NumOfComments-${numberOfComments}`, x: msg.x, y: msg.y, time: msg.time, url: msg.url });
-            return;
-        }
-        if (element.classList.contains('muted-link') && element.attributes.getNamedItem('data-hovercard-type')) {
-            const linkType = element.attributes.getNamedItem('data-hovercard-type').value;
-            if (linkType === 'user') {
-                console.log('User')
-                const user = element.innerHTML;
-                sentResult = true;
-                sendResponse({ result: `Username-${user}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
-                return;
-            } else if (linkType === 'pull_requires') {
-                console.log('Pull request')
-                const pullRequest = element.innerHTML;
-                sentResult = true;
-                sendResponse({ result: `PullRequest-${pullRequest}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
-                return;
-            } else if (linkType.includes("review approval")) {
-                console.log('# of approvals')
-                const numApprovals = element.attributes.getNamedItem('aria-label').value;
-                sentResult = true;
-                sendResponse({ result: `NumApprovals-${numApprovals}`, x: msg.x, y: msg.y, time: msg.time, url: msg.url });
-                return;
-            }
-        }
-        if (element.classList.contains('muted-link') && element.attributes.getNamedItem('aria-label')) {
-            const label = element.attributes.getNamedItem('aria-label').value;
-            if (label.includes('approval')) {
-                console.log('Approval')
-                sentResult = true;
-                sendResponse({ result: `PRStatus-Approval`, x: msg.x, y: msg.y, time: msg.time, url: msg.url });
-                return;
-            } else if (label.includes('requesting changes')) {
-                console.log('Changes requested')
-                sentResult = true;
-                sendResponse({ result: `PRStatus-Changes Requested`, x: msg.x, y: msg.y, time: msg.time, url: msg.url });
-                return;
-            }
-        }
-        if (element.tagName === 'RELATIVE-TIME') {
-            console.log('Time opened')
-            const opened = element.innerHTML;
-            const timestamp = element.attributes.getNamedItem('title').value;
-            sentResult = true;
-            sendResponse({ result: `PullRequestOpened-${opened} on ${timestamp}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
-            return;
-        }
-        if (element.classList.contains('task-progress-counts')) {
-            console.log('Task progress count')
-            const taskProgress = element.innerHTML;
-            sentResult = true;
-            sendResponse({ result: `TaskCompletion-${taskProgress}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
-            return;
-        }
-    }
-    if (!sentResult) {
+
+        // nothing matched
         sendResponse(null);
+    } catch (e) {
+        try { sendResponse(null); } catch (er) { }
     }
 });
 
 /**
  * This page currently logs: 
- *  - number of comments 
- *  - time open 
- *  - developer profile who created PR
- *  - task progress count 
- *  - failure on CI build
- *  - success on CI build 
- *  - number of approvals
- *  - Open pull requests 
- *  - Changes requested
- *  - approved 
+ * - Num PR Open/Closed
+ * - Project name
+ * - Organization name
+ * - Number of forked
+ * - Number of starred
+ * - Number of comments on PR
+ * - Username (opened PR)
+ * - PR Title
+ * - Relative time (e.g. opened 2 days ago)
+ * - Status (approved, review required, changes requested)
  */
