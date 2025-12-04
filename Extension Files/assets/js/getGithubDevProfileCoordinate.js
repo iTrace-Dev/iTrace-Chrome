@@ -26,15 +26,18 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     let sentResult = false;
     for (element of elements) {
         // Avatar
-        if (element.classList.contains("avatar") && element.tagName === 'IMG') {
-            console.log('avatar image'); 
+        if (element.classList.contains("d-block") && element.tagName === 'A') {
+            console.log('Avatar Image'); 
+            
+            const avatarHref = element.getAttribute('href') || '';
+
             sentResult = true;
-            sendResponse({ result: `AvatarImage-`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
+            sendResponse({ result: `AvatarImage-${avatarHref}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
             return;
         }
         // Activity overview (deprecated?)
         if (element.classList.contains("js-activity-overview-graph-container") && element.attributes.getNamedItem('data-percentages')) {
-            console.log("activity overview");
+            console.log("Activity Overview");
             let activityOverview = element.attributes.getNamedItem('data-percentages').value;
             activityOverview = JSON.parse(activityOverview);
             const percentCommits = activityOverview["Commits"];
@@ -46,7 +49,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
         }
         // Contribution heat map
         if (element.tagName === 'DIV' && element.classList.contains("graph-before-activity-overview")) {
-            console.log('contribution heat map')
+            console.log('Contribution Heat Map')
             sentResult = true;
             sendResponse({ result: `ContributionHeatMap`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
             return; 
@@ -61,7 +64,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
         }
         // Profile label (depcrecated?)
         if (element.tagName === 'SPAN' && element.classList.contains("label")) {
-            console.log('profile label')
+            console.log('Profile Label')
             const labelName = element.innerHTML;
             sentResult = true;
             sendResponse({ result: `ProfileLabel-${labelName}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
@@ -87,9 +90,9 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
             sendResponse({ result: `FollowerCount-${followerCount} followers, ${followingCount} following`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
             return; 
         }
-        // Vcard section
-        if (element.tagName === 'DIV' && element.classList.contains("vcard-details")) {
-            console.log('Vcard Section')
+        // Profile details section
+        if (element.tagName === 'UL' && element.classList.contains("vcard-details")) {
+            console.log('Profile Details Section')
             sentResult = true;
             sendResponse({ result: `VcardSection`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
             return; 
@@ -109,13 +112,13 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
             return; 
         }
         // Organization icon and link
-        if (element.tagName === 'A' && element.attributes.getNamedItem("data-hovercard-type") && element.attributes.getNamedItem("data-hovercard-type").value === "organization"
-            && element.classList.contains("avatar-group-item")) {
-            console.log('Organization')
-            console.log(element);
-            const organizationName = element.attributes.getNamedItem("aria-label").value;
+        // if (element.tagName === 'A' && element.attributes.getNamedItem("data-hovercard-type") && element.attributes.getNamedItem("data-hovercard-type").value === "organization"
+            // && element.classList.contains("avatar-group-item")) {
+        if (element.classList.contains("pt-3") && element.classList.contains("clearfix")){
+            console.log('Organizations Section');
+            // const organizationName = element.attributes.getNamedItem("aria-label").value;
             sentResult = true;
-            sendResponse({ result: `Organization-${organizationName}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
+            sendResponse({ result: `Organizations`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
             return; 
         }
         // Contributed repository link (deprecated?)
@@ -128,7 +131,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
         }
         // Pinned repository link
         if (element.tagName === 'DIV' && element.classList.contains("public") && element.classList.contains("source")) {
-            console.log('Pinned repository')
+            console.log('Pinned Repository')
 
             const repoLink = element.querySelector('a.Link.text-bold');
             let ownerRepo = '';
@@ -146,7 +149,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
         }
         // tab and counter
         if (element.classList.contains("Counter")) {
-            console.log("tab Counter")
+            console.log("Tab Counter")
             const tab = element.parentElement.innerHTML; 
             const number = element.innerHTML
             sentResult = true;
@@ -156,16 +159,16 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
         // tab but no counter
         if (element.classList.contains("UnderlineNav-item")) {
             const tabName = element.innerText.replace(/\s+/g, ' ').trim(); // clean up whitespace
-            console.log(`tab (no counter) ${tabName}`)
+            console.log(`Tab (no counter) ${tabName}`)
             sentResult = true;
             sendResponse({ result: `Tab-${tabName}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
             return;
         }
         // Contribution activity entry
         if (element.classList.contains("TimelineItem")) {
-            console.log("Contribution Acitivty Entry")
-            summary = element.querySelector("color-fg-default").innerText;
-            activityText = summary.trim();
+            console.log("Contribution Activity Entry");
+            const summary = element.querySelector("h4 span.color-fg-default");
+            activityText = summary ? summary.textContent.trim(): '';
             
             sentResult = true;
             sendResponse({ result: `ContributionActivity-${activityText}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
