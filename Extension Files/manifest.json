@@ -1,53 +1,90 @@
 {
-  "manifest_version": 2,
-
+  "manifest_version": 3,
   "name": "iTrace-Chrome Plugin",
   "description": "Plugin which allows for tracking eyegaze data on webpages in Chrome.",
   "version": "0.0.1",
   "content_scripts": [
     {
-      "matches": ["*://stackoverflow.com/questions/*"],
-      "js": ["/assets/js/getSOCoordinate.js"]
+      "matches": [
+        "https://stackoverflow.com/questions*"
+      ],
+      "js": [
+        "/assets/js/getSOCoordinate.js"
+      ]
     },
     {
-      "matches": ["*://bugs.eclipse.org/*", "*://bugzilla.mozilla.org/*", "*://bugzilla.kernel.org/*", "*://bz.apache.org/*"],
-      "js": ["/assets/js/getBZCoordinate.js"]
+      "matches": [
+        "*://bugs.eclipse.org/*", 
+        "*://bugzilla.mozilla.org/*",
+        "*://bugzilla.kernel.org/*",
+        "*://bz.apache.org/*"
+      ],
+      "js": [
+        "/assets/js/getBZCoordinate.js"
+      ]
     },
     {
-      "matches": ["https://stackoverflow.com/*"],
-      "js": ["/assets/js/getSearchCoordinate.js"]
+      "matches": [
+        "https://stackoverflow.com/search*"
+      ],
+      "js": [
+        "/assets/js/getSearchCoordinate.js"
+      ]
     },
     {
-      "matches": ["https://*.google.com/*"],
-      "js": ["/assets/js/getGoogleCoordinate.js"]
+      "matches": [
+        "https://*.google.com/*"
+      ],
+      "js": [
+        "/assets/js/getGoogleCoordinate.js"
+      ]
     },
     {
-      "matches": ["https://github.com/*/*/issues"],
-      "js": ["/assets/js/getGithubIssueListCoordinate.js"]
+      "matches": [
+        "https://github.com/*/*/issues"
+      ],
+      "js": [
+        "/assets/js/getGithubIssueListCoordinate.js"
+      ]
     },
     {
-      "matches": ["https://github.com/*/*/pulls"],
-      "js": ["/assets/js/getGithubPRListCoordinate.js"]
+      "matches": [
+        "https://github.com/*/*/pulls"
+      ],
+      "js": [
+        "/assets/js/getGithubPRListCoordinate.js"
+      ]
     },
     {
-      "matches": ["https://github.com/*/pull/*"],
-      "js": ["/assets/js/getGithubPullRequestCoordinate.js"]
+      "matches": [
+        "https://github.com/*/pull/*"
+      ],
+      "js": [
+        "/assets/js/getGithubPullRequestCoordinate.js"
+      ]
     },
     {
-      "matches": ["https://github.com/*/"],
-      "js": ["/assets/js/getGithubDevProfileCoordinate.js"]
+      "matches": [
+        "https://github.com/*/"
+      ],
+      "js": [
+        "/assets/js/getGithubDevProfileCoordinate.js"
+      ]
     },
     {
-      "matches": ["https://github.com/*tab*"],
-      "js": ["/assets/js/getGithubDevProfileCoordinate.js"]
+      "matches": [
+        "https://github.com/*tab*"
+      ],
+      "js": [
+        "/assets/js/getGithubDevProfileCoordinate.js"
+      ]
     }
   ],
   "background": {
-    "persistent": true,
-    "scripts": ["/assets/js/jquery-3.3.1.js", "/assets/js/background.js"]
+    "service_worker": "assets/js/background.js"
   },
-  "browser_action": {
-    "default_icon": {                    
+  "action": {
+    "default_icon": {
       "16": "icon16.png",
       "48": "icon48.png",
       "128": "icon128.png"
@@ -55,11 +92,19 @@
     "default_popup": "popup.html"
   },
   "permissions": [
-	  "tabs",
+    "storage",
+    "scripting",
+    "tabs",
     "activeTab",
     "downloads"
   ],
+  "host_permissions": [
+    "https://*.google.com/*"
+  ],
   "externally_connectable": {
-    "matches": ["*://*.stackoverflow.com/**", "https://stackoverflow.com/*"]
+    "matches": [
+      "*://*.stackoverflow.com/**",
+      "https://stackoverflow.com/*"
+    ]
   }
 }

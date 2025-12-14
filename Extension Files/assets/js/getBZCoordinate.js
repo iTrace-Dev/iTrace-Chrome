@@ -26,21 +26,21 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
 
     var sentResult = false;
     for (element of elements) {
-        if (element.classList.contains('bz_show_bug_column_1')) {
-            console.log('question info - 1');
+        if (element.classList.contains('module-categories')) {
+            console.log('question info - categories');
             sentResult = true;
-            sendResponse({ result: 'question info - 1', x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
+            sendResponse({ result: 'question info - categories', x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
             return;
         }
 
-        if (element.classList.contains('bz_show_bug_column_2')) {
-            console.log('question info - 1');
+        if (element.id === 'module-tracking') {
+            console.log('question info - tracking');
             sentResult = true;
-            sendResponse({ result: 'question info - 2', x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
+            sendResponse({ result: 'question info - tracking', x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
             return;
         }
  
-        if (element.classList.contains('bz_comment')) {
+        if (element.classList.contains('comment-text')) {
             console.log('answer info');
             sentResult = true;
             sendResponse({ result: 'answer info', x: msg.x, y: msg.y, time: msg.time, tagname: element.tagName, id: element.id, url: msg.url });
