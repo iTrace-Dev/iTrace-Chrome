@@ -459,7 +459,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         iTraceChrome.writeXMLData();
     }
     if (message.type === "startSessionITraceChrome") {
-        iTraceChrome.startSession(message.vars[0], message.vars[1]);
+        iTraceChrome.startSession(message.vars[0]);
     }
     if (message.type === "isActiveITraceChrome") {
         sendResponse(iTraceChrome.isActive);
