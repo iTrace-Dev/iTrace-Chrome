@@ -18,27 +18,28 @@
  ************************************************************************************************************************
  ********************************/
 
-console.log('Github List of Pull Requests Script Started');
 
-// looks at list of pull requests and logs its data
+console.log('Github Pull Requests Script Started');
+// looks at a specific pull request and listen/logs the data and things associated with pull requests
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     const elements = document.elementsFromPoint(msg.x, msg.y);
     let sentResult = false;
     for (element of elements) {
-      if (element.id.includes('word')) {
-        console.log('word of a comment')
-        const word = element.innerHTML.trim();
-        sentResult = true;
-        if (element.attributes.getNamedItem('listtype')) {
-          const listType = element.attributes.getNamedItem('listtype').value === 'ol' ? 'NumberedList' : 'UnorderedList';
-          const listNumber = element.attributes.getNamedItem('listnumber').value;
-          sendResponse({ result: `CommentWordIn${listType}-${word}-${listNumber}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });  
-          return;
-        } else {
-          sendResponse({ result: `CommentWord-${word}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
-          return;
-        }
-      }
+      // Words don't appear to work for now.
+      // if (element.id.includes('word')) {
+      //   console.log('word of a comment')
+      //   const word = element.innerHTML.trim();
+      //   sentResult = true;
+      //   if (element.attributes.getNamedItem('listtype')) {
+      //     const listType = element.attributes.getNamedItem('listtype').value === 'ol' ? 'NumberedList' : 'UnorderedList';
+      //     const listNumber = element.attributes.getNamedItem('listnumber').value;
+      //     sendResponse({ result: `CommentWordIn${listType}-${word}-${listNumber}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });  
+      //     return;
+      //   } else {
+      //     sendResponse({ result: `CommentWord-${word}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
+      //     return;
+      //   }
+      // }
       if (element.classList.contains('task-list-item')) {
         console.log('Checkbox item');
         sentResult = true;
@@ -55,57 +56,69 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
       // }
 
       // Number of files changed
-      if (element.id === 'files_tab_counter') {
+      if (element.attributes.getNamedItem('href')?.value.includes("/files") && element.classList.contains('tabnav-tab')) {
         console.log('# of files changed');
+        const filesCounter = element.querySelector('#files_tab_counter');
+        const filesCount = filesCounter ? filesCounter.innerHTML.trim() : 'Unknown';
         sentResult = true;
-        sendResponse({ result: `NumOfFilesChanged-${element.innerHTML.trim()}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
+        sendResponse({ result: `NumOfFilesChanged-${filesCount}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
         return;
       }
       // Number of checks
-      if (element.id === 'checks_tab_counter') {
+      if (element.attributes.getNamedItem('href')?.value.includes("/checks") && element.classList.contains('tabnav-tab')) {
         console.log('# Checks');
+        const checksCounter = element.querySelector('#checks_tab_counter');
+        const checksCount = checksCounter ? checksCounter.innerHTML.trim() : 'Unknown';
         sentResult = true;
-        sendResponse({ result: `NumOfChecks-${element.innerHTML.trim()}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
+        sendResponse({ result: `NumOfChecks-${checksCount}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
         return;
       }
       // Number of commits
-      if (element.id === 'commits_tab_counter') {
+      if (element.attributes.getNamedItem('href')?.value.includes("/commits") && element.classList.contains('tabnav-tab')) {
         console.log('# Commits');
+        const commitCounter = element.querySelector('#commits_tab_counter');
+        const commitCount = commitCounter ? commitCounter.innerHTML.trim() : 'Unknown';
         sentResult = true;
-        sendResponse({ result: `NumOfCommits-${element.innerHTML.trim()}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
+        sendResponse({ result: `NumOfCommits-${commitCount}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
         return;
       }
       // Number of conversations
-      if (element.id === 'conversation_tab_counter') {
+      if (element.attributes.getNamedItem('href')?.value.includes("/pull/") && element.classList.contains('tabnav-tab') &&
+      element.querySelector('#conversation_tab_counter')) {
         console.log('# Conversations');
+        const conversationCounter = element.querySelector('#conversation_tab_counter');
+        const conversationCount = conversationCounter ? conversationCounter.innerHTML.trim() : 'Unknown';
         sentResult = true;
-        sendResponse({ result: `NumOfConversationComments-${element.innerHTML.trim()}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
+        sendResponse({ result: `NumOfConversationComments-${conversationCount}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
         return;
       }
       // Number of total diffs
       if (element.classList.contains('diffstat')) {
         if (element.id === 'diffstat') {
           console.log('Number of total diffs');
+          const diffAdd = element.querySelector(".color-fg-success");
+          const diffSub = element.querySelector(".color-fg-danger");
           sentResult = true;
-          sendResponse({ result: `TotalDiffs- `, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
+          sendResponse({ result: `TotalDiffs- ${diffAdd}, ${diffSub}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
           return;
         }
-        // Number of file diffs
-        if (element.classList.contains('tooltipped')) {
-          console.log('Number of file diffs');
-          const numChanges = element.attributes.getNamedItem('aria-label').value;
-          sentResult = true;
-          sendResponse({ result: `NumOfFileDiffs-${numChanges.trim()}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
-          return;
-        }
+        // Number of file diffs (deprecated)
+        // if (element.classList.contains('tooltipped')) {
+        //   console.log('Number of file diffs');
+        //   const numChanges = element.attributes.getNamedItem('aria-label').value;
+        //   sentResult = true;
+        //   sendResponse({ result: `NumOfFileDiffs-${numChanges.trim()}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
+        //   return;
+        // }
       } 
       // Deleted line of code
       if (element.tagName === 'TD' && element.classList.contains('blob-code-deletion')) {
         console.log('Deleted Line of Code');
         let lineNumber = 0;
-        if (element.attributes.getNamedItem('data-line-number')) {
-          lineNumber = element.attributes.getNamedItem('data-line-number').value;
-        }  
+        const lineNumberCell = element.previousElementSibling;
+        if (lineNumberCell && lineNumberCell.hasAttribute('data-line-number')) {
+            lineNumber = lineNumberCell.getAttribute('data-line-number');
+        }
         sentResult = true;
         sendResponse({ result: `DeletedLOC-${lineNumber}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
         return;
@@ -113,10 +126,12 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
       // Added line of code
       if (element.tagName === 'TD' && element.classList.contains('blob-code-addition')) {
         console.log('Added Line of Code');
-        let lineNumber = 0;
-        if (element.attributes.getNamedItem('data-line-number')) {
-          lineNumber = element.attributes.getNamedItem('data-line-number').value;
+        let lineNumber = 0;    
+        const lineNumberCell = element.previousElementSibling;
+        if (lineNumberCell && lineNumberCell.hasAttribute('data-line-number')) {
+            lineNumber = lineNumberCell.getAttribute('data-line-number');
         }
+
         sentResult = true;
         sendResponse({ result: `AddedLOC-${lineNumber}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
         return;
@@ -125,17 +140,19 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
       if (element.tagName === 'TD' && element.classList.contains('blob-code-context')) {
         console.log('Unchanged Line of Code');
         let lineNumber = 0;
-        if (element.attributes.getNamedItem('data-line-number')) {
-          lineNumber = element.attributes.getNamedItem('data-line-number').value;
+        const lineNumberCell = element.previousElementSibling;
+        if (lineNumberCell && lineNumberCell.hasAttribute('data-line-number')) {
+            lineNumber = lineNumberCell.getAttribute('data-line-number');
         } 
         sendResponse({ result: `UnchangedLOC-${lineNumber}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
         return;
       }
-      if (element.tagName === 'A' && element.attributes.getNamedItem('href')) {
+      if (element.tagName === 'a' && element.attributes.getNamedItem('href')) {
         // File name
-        if (element.attributes.getNamedItem('href').value.includes("#diff-")) {
+        if (element.attributes.getNamedItem('href').value.includes("#diff-") && element.classList.contains('text-mono')) {
           console.log("Filename")
-          const fileName = element.attributes.getNamedItem('title').value;
+          // const fileName = element.attributes.getNamedItem('title').value;
+          const fileName = element.innerHTML;
           sentResult = true;
           sendResponse({ result: `File-${fileName.trim()}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });  
           return; 
@@ -172,13 +189,23 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
         return;
       }
       
-      const sidebarElements = ['Reviewers', 'Projects', 'Milestones', 'Labels', 'Assignees'];
-      if (element.classList.contains('discussion-sidebar-heading') && sidebarElements.includes(element.innerHTML.trim())) {
-        console.log(element.innerHTML.trim());
+      // const sidebarElements = ['Reviewers', 'Projects', 'Milestones', 'Labels', 'Assignees'];
+      // if (element.classList.contains('discussion-sidebar-heading') && sidebarElements.includes(element.innerHTML.trim())) {
+      //   console.log(element.innerHTML.trim());
+      //   sentResult = true;
+      //   const header = element.innerHTML.trim();
+      //   sendResponse({ result: `${header}-${header}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
+      //   return;
+      // }
+      if (element.tagName === 'FORM' && element.classList.contains('js-issue-sidebar-form')){
+        let ariaLabel = element.getAttribute('aria-label') || 'UnknownForm';
+        ariaLabel = ariaLabel.replace(/^Select\s+/i, '')
+        if (ariaLabel === "Link issues"){
+          ariaLabel = "development"
+        }
+        console.log(`Sidebar - ${ariaLabel}`);
         sentResult = true;
-        const header = element.innerHTML.trim();
-        sendResponse({ result: `${header}-${header}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
-        return;
+        sendResponse({result: `Sidebar-${ariaLabel}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url});
       }
       if (element.classList.contains('participation')) {
         console.log("Sidebar - Participation")
@@ -200,14 +227,16 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
         return;
       }
       // Image within comment body
-      if (element.tagName === 'IMG' && element.parentNode.parentNode.parentNode.classList.contains('comment-body')) {
+      if (element.tagName === 'IMG' && (element.parentNode.parentNode.parentNode.classList.contains('comment-body') ||
+      element.parentNode.parentNode.parentNode.parentNode.classList.contains('comment-body'))) {
         console.log("Image");
         sentResult = true;
         const imgUrl = element.parentNode.attributes.getNamedItem('href') ? element.parentNode.attributes.getNamedItem('href').value : '';
         sendResponse({ result: `Image-${imgUrl}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
+        return;
       }
       // Comment body
-      if (element.tagName === 'TD' && element.classList.contains('comment-body')) {
+      if ((element.tagName === 'TD' || element.tagName === 'DIV') && element.classList.contains('comment-body')) {
         console.log('Comment body');
         sentResult = true;  
         const timelineBody = element.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode;
