@@ -97,7 +97,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
         if (element.id === 'diffstat') {
           console.log('Number of total diffs');
           const diffAdd = element.querySelector(".color-fg-success")?.textContent.trim();
-          const diffSub = element.querySelector(".color-fg-danger")?.textContent.trim()
+          const diffSub = element.querySelector(".color-fg-danger")?.textContent.trim();
           sentResult = true;
           sendResponse({ result: `TotalDiffs- ${diffAdd}, ${diffSub}`, x: msg.x, y: msg.y, time: msg.time, id: element.id, url: msg.url });
           return;
