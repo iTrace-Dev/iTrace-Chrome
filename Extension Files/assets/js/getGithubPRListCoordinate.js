@@ -114,7 +114,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
             if (element.tagName === 'A') {
                 const ariaAttr = element.getAttribute && element.getAttribute('aria-label');
                 if (ariaAttr && ariaAttr.toLowerCase().includes('comment')) {
-                    const numberOfComments = ariaAttr;
+                    const numberOfComments = ariaAttr.match(/\d+/)?.[0] || ariaAttr;
                     sendResponse({ result: `NumOfComments-${numberOfComments}`, x: x, y: y, time: msg.time, url: msg.url || location.href });
                     return;
                 }
@@ -146,9 +146,16 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
             }
 
             // Task progress count
-            if (element.classList && element.classList.contains('task-progress-counts')) {
-                const taskProgress = element.innerHTML;
-                sendResponse({ result: `TaskCompletion-${taskProgress}`, x: x, y: y, time: msg.time, id: element.id || null, url: msg.url || location.href });
+            if (element.tagName === 'TRACKED-ISSUES-PROGRESS') {
+                const taskProgress = element.dataset.total;
+                sendResponse({
+                    result: `TaskCompletion-${taskProgress}`,
+                    x: x,
+                    y: y,
+                    time: msg.time,
+                    id: element.id || null,
+                    url: msg.url || location.href
+                });
                 return;
             }
         }

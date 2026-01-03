@@ -41,7 +41,7 @@
     },
     {
       "matches": [
-        "https://github.com/*/*/issues"
+        "https://github.com/*/*/issues*"
       ],
       "js": [
         "/assets/js/getGithubIssueListCoordinate.js"
@@ -49,7 +49,7 @@
     },
     {
       "matches": [
-        "https://github.com/*/*/pulls"
+        "https://github.com/*/*/pulls*"
       ],
       "js": [
         "/assets/js/getGithubPRListCoordinate.js"
