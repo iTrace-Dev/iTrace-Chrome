@@ -137,7 +137,7 @@ const iTraceChrome = {
 
         for (var file in sessionsData) {
             // call method to parse JSON to xml string, then write to file
-            if (!file) continue;
+            if (!file || file === "undefined") continue;
             var xmlString = iTraceChrome.json2xml(sessionsData[file]);
             var xmlBlob = new Blob([xmlString], {type: "text/xml"});
 
