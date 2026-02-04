@@ -135,8 +135,6 @@ const iTraceChrome = {
 
         var sessionsData = iTraceChrome.groupByFilename(iTraceChrome.sessionData);
 
-        console.log(sessionsData.length);
-
         for (var file in sessionsData) {
             // call method to parse JSON to xml string, then write to file
             if (!file || file === "undefined") continue;
@@ -345,6 +343,12 @@ const iTraceChrome = {
         iTraceChrome.id = iTraceChrome.tab.id;
         console.log('START SESSION');
 
+        iTraceChrome.websocket = new WebSocket('ws://localhost:7007');
+
+        // listen for eye gaze data coming from the server
+        iTraceChrome.websocket.onmessage = iTraceChrome.webSocketHandler.bind(iTraceChrome);
+        iTraceChrome.isActive = true;
+
         chrome.scripting.executeScript({
             target: {tabId: iTraceChrome.id},
             func: () => window.innerWidth
@@ -362,24 +366,18 @@ const iTraceChrome = {
             const {width, height} = results[0].result;
             iTraceChrome.screenWidth = width;
             iTraceChrome.screenHeight = height;
-        });
 
-        iTraceChrome.websocket = new WebSocket('ws://localhost:7007');
-
-        // listen for eye gaze data coming from the server
-        iTraceChrome.websocket.onmessage = iTraceChrome.webSocketHandler.bind(iTraceChrome);
-        iTraceChrome.isActive = true;
-
-        chrome.storage.local.set({
-            iTraceState: {
-                id: iTraceChrome.id,
-                fileLocation: iTraceChrome.fileLocation,
-                browserX: iTraceChrome.browserX,
-                browserY: iTraceChrome.browserY,
-                screenWidth: iTraceChrome.screenWidth,
-                screenHeight: iTraceChrome.screenHeight,
-                isActive: iTraceChrome.isActive
-            }
+            chrome.storage.local.set({
+                iTraceState: {
+                    id: iTraceChrome.id,
+                    fileLocation: iTraceChrome.fileLocation,
+                    browserX: iTraceChrome.browserX,
+                    browserY: iTraceChrome.browserY,
+                    screenWidth: iTraceChrome.screenWidth,
+                    screenHeight: iTraceChrome.screenHeight,
+                    isActive: iTraceChrome.isActive
+                }
+            });
         });
 
 
@@ -459,7 +457,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         iTraceChrome.writeXMLData();
     }
     if (message.type === "startSessionITraceChrome") {
-        iTraceChrome.startSession(message.vars[0], message.vars[1]);
+        iTraceChrome.startSession(message.vars[0]);
     }
     if (message.type === "isActiveITraceChrome") {
         sendResponse(iTraceChrome.isActive);
