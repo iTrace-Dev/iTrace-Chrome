@@ -30,24 +30,40 @@ const iTraceChrome = {
     // this function takes the x and y coordinates from the screen and the browser
     // to get the offset, which then returns the translated coordinates based off if the user
     // is looking in or outside the viewport
+
     translateCoordinates: function (x, y) {
-        // screen dimensions
-        var screenX = iTraceChrome.screenWidth;
-        var screenY = iTraceChrome.screenHeight;
-
-        var offsetX = screenX - iTraceChrome.browserX;
-        var offsetY = screenY - iTraceChrome.browserY;
-
-        if (x < offsetX || y < offsetY) {
-            // user is looking outside of the broswer viewport, most likely at the broswer's shell
+        if (
+            iTraceChrome.viewportX == null ||
+            iTraceChrome.viewportY == null ||
+            iTraceChrome.browserWidth == null ||
+            iTraceChrome.browserHeight == null ||
+            iTraceChrome.dpr == null
+        ) {
             return null;
-        } else {
-            // user is looking in the broswer viewport, return the translated coordinates
-            return {x: x - offsetY, y: y - offsetX};
         }
+
+        const cssX = x / iTraceChrome.dpr;
+        const cssY = y / iTraceChrome.dpr;
+
+        // Translate into coordinates relative to viewport
+        const relX = cssX - iTraceChrome.viewportX;
+        const relY = cssY - iTraceChrome.viewportY - iTraceChrome.chromeUIHeight;
+
+        // Bounds check
+        if (
+            relX < 0 || // Not to the left of the viewportX
+            relY < 0 || // Not above viewportY
+            relX > iTraceChrome.browserWidth || // Not to the right of the window
+            relY > iTraceChrome.browserHeight // Not below the window
+        ) {
+            return null;
+        }
+
+        return {x: relX, y: relY};
     },
 
     // this function groups files by their name, param data are the files
+
     groupByFilename: function (data) {
         return data.reduce(function (objectsByKeyValue, obj) {
             var value = obj.filename;
@@ -345,43 +361,47 @@ const iTraceChrome = {
         iTraceChrome.id = iTraceChrome.tab.id;
         console.log('START SESSION');
 
-        chrome.scripting.executeScript({
-            target: {tabId: iTraceChrome.id},
-            func: () => window.innerWidth
-        }).then((r) => iTraceChrome.getBrowserX([r[0].result]));
-
-        chrome.scripting.executeScript({
-            target: {tabId: iTraceChrome.id},
-            func: () => window.innerHeight
-        }).then((r) => iTraceChrome.getBrowserY([r[0].result]));
-
-        chrome.scripting.executeScript({
-            target: {tabId: iTraceChrome.id},
-            func: () => ({width: window.screen.width, height: window.screen.height})
-        }).then(results => {
-            const {width, height} = results[0].result;
-            iTraceChrome.screenWidth = width;
-            iTraceChrome.screenHeight = height;
-        });
-
         iTraceChrome.websocket = new WebSocket('ws://localhost:7007');
 
         // listen for eye gaze data coming from the server
         iTraceChrome.websocket.onmessage = iTraceChrome.webSocketHandler.bind(iTraceChrome);
         iTraceChrome.isActive = true;
 
-        chrome.storage.local.set({
-            iTraceState: {
-                id: iTraceChrome.id,
-                fileLocation: iTraceChrome.fileLocation,
-                browserX: iTraceChrome.browserX,
-                browserY: iTraceChrome.browserY,
-                screenWidth: iTraceChrome.screenWidth,
-                screenHeight: iTraceChrome.screenHeight,
-                isActive: iTraceChrome.isActive
-            }
-        });
+        chrome.scripting.executeScript({
+            target: {tabId: iTraceChrome.id},
+            func: () => ({
+                innerWidth: window.innerWidth,
+                innerHeight: window.innerHeight,
+                outerHeight: window.outerHeight,
+                screenX: window.screenX,
+                screenY: window.screenY,
+                devicePixelRatio: window.devicePixelRatio
+            })
+        }).then(r => {
+            const data = r[0].result;
+            iTraceChrome.browserWidth = data.innerWidth;
+            iTraceChrome.browserHeight = data.innerHeight;
+            iTraceChrome.chromeUIHeight = data.outerHeight - data.innerHeight;
+            iTraceChrome.viewportX = data.screenX;
+            iTraceChrome.viewportY = data.screenY;
+            iTraceChrome.dpr = data.devicePixelRatio;
 
+            chrome.storage.local.set({
+                iTraceState: {
+                    id: iTraceChrome.id,
+                    fileLocation: iTraceChrome.fileLocation,
+                    // viewport vars tell us where the Chrome window begins in the top left corner relative to the screen
+                    // They are measured in Css pixels
+                    viewportX: iTraceChrome.viewportX,
+                    viewportY: iTraceChrome.viewportY,
+                    browserWidth: iTraceChrome.browserWidth,
+                    browserHeight: iTraceChrome.browserHeight,
+                    // Device Pixel Ratio
+                    dpr: iTraceChrome.dpr,
+                    isActive: iTraceChrome.isActive
+                }
+            });
+        });
 
         chrome.runtime.sendMessage({type: "websocketStatus", status: "attempting"});
 
@@ -459,7 +479,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         iTraceChrome.writeXMLData();
     }
     if (message.type === "startSessionITraceChrome") {
-        iTraceChrome.startSession(message.vars[0], message.vars[1]);
+        iTraceChrome.startSession(message.vars[0]);
     }
     if (message.type === "isActiveITraceChrome") {
         sendResponse(iTraceChrome.isActive);
