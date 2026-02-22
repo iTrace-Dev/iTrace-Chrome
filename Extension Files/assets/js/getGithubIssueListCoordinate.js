@@ -18,7 +18,7 @@
  ************************************************************************************************************************
  ********************************/
 
-console.log('Github Issuees Script Started');
+console.log('Github Issues Script Started');
 
 // listens for the different GitHub issue coordinates and data associated with it, then sends
 // response based on its results
@@ -149,7 +149,6 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
             });
             return;
         }
-        // Works, though the taskprogress is literally just a <div /> that is really long lol
         if (element.closest('[data-listview-component="trailing-badge"]') &&
             /\d+\s*\/\s*\d+/.test(element.textContent)) {
             console.log('Task progress bar')

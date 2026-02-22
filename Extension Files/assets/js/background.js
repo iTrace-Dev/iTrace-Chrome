@@ -153,8 +153,6 @@ const iTraceChrome = {
 
         var sessionsData = iTraceChrome.groupByFilename(iTraceChrome.sessionData);
 
-        console.log(sessionsData.length);
-
         for (var file in sessionsData) {
             // call method to parse JSON to xml string, then write to file
             if (!file || file === "undefined") continue;
