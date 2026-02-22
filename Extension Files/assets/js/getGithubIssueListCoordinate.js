@@ -23,7 +23,7 @@ console.log('Github Issuees Script Started');
 // listens for the different GitHub issue coordinates and data associated with it, then sends
 // response based on its results
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
-    const elements = document.elementsFromPoint(msg.x, msg.y);
+    const elements = document.elementsFromPoint(msg.relX, msg.relY);
     let sentResult = false;
     for (element of elements) {
         console.log("looping");
@@ -33,8 +33,8 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
             sentResult = true;
             sendResponse({
                 result: `NumIssuesOpen-${numberOpen}`,
-                x: msg.x,
-                y: msg.y,
+                relX: msg.relX,
+                relY: msg.relY,
                 time: msg.time,
                 id: element.id,
                 url: msg.url
@@ -55,8 +55,8 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 sentResult = true;
                 sendResponse({
                     result: `OrganizationName-${organization}`,
-                    x: msg.x,
-                    y: msg.y,
+                    relX: msg.relX,
+                    relY: msg.relY,
                     time: msg.time,
                     id: element.id,
                     url: msg.url
@@ -68,14 +68,14 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 sentResult = true;
                 sendResponse({
                     result: `Username-${user}`,
-                    x: msg.x,
-                    y: msg.y,
+                    relX: msg.relX,
+                    relY: msg.relY,
                     time: msg.time,
                     id: element.id,
                     url: msg.url
                 });
                 return;
-            } 
+            }
         }
 
         if (
@@ -87,8 +87,8 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
             sentResult = true;
             sendResponse({
                 result: `Issue-${title}`,
-                x: msg.x,
-                y: msg.y,
+                relX: msg.relX,
+                relY: msg.relY,
                 time: msg.time,
                 id: element.id,
                 url: msg.url
@@ -105,8 +105,8 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 sentResult = true;
                 sendResponse({
                     result: `NumOfComments-${numberOfComments}`,
-                    x: msg.x,
-                    y: msg.y,
+                    relX: msg.relX,
+                    relY: msg.relY,
                     time: msg.time,
                     url: msg.url
                 });
@@ -126,8 +126,8 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
             sentResult = true;
             sendResponse({
                 result: `IssueLabel-${labelTitle}`,
-                x: msg.x,
-                y: msg.y,
+                relX: msg.relX,
+                relY: msg.relY,
                 time: msg.time,
                 id: element.id,
                 url: msg.url
@@ -141,8 +141,8 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
             sentResult = true;
             sendResponse({
                 result: `IssueOpened-${opened} on ${timestamp}`,
-                x: msg.x,
-                y: msg.y,
+                relX: msg.relX,
+                relY: msg.relY,
                 time: msg.time,
                 id: element.id,
                 url: msg.url
@@ -157,8 +157,8 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
             sentResult = true;
             sendResponse({
                 result: `TaskCompletion-${taskProgress}`,
-                x: msg.x,
-                y: msg.y,
+                relX: msg.relX,
+                relY: msg.relY,
                 time: msg.time,
                 id: element.id,
                 url: msg.url

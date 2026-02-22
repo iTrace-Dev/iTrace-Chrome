@@ -24,7 +24,7 @@
 console.log('Get SO Search Coordinates Script Started');
 
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
-    var elements = document.elementsFromPoint(msg.x, msg.y);
+    var elements = document.elementsFromPoint(msg.relX, msg.relY);
 
     var fixationElement = document.getElementById('fixationMover');
     if (fixationElement == null) {
@@ -34,8 +34,8 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
         document.body.appendChild(fixationElement);
     }
 
-    fixationElement.style.left = msg.x + "px";
-    fixationElement.style.top = msg.y + "px";
+    fixationElement.style.left = msg.relX + "px";
+    fixationElement.style.top = msg.relY + "px";
 
     var sentResult = false;
     // console.log('Hello');
@@ -45,8 +45,8 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
             sentResult = true;
             sendResponse({
                 result: 'answer-hyperlink',
-                x: msg.x,
-                y: msg.y,
+                relX: msg.relX,
+                relY: msg.relY,
                 time: msg.time,
                 tagname: element.tagName,
                 id: element.id,
@@ -59,8 +59,8 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
             sentResult = true;
             sendResponse({
                 result: 'question vote count',
-                x: msg.x,
-                y: msg.y,
+                relX: msg.relX,
+                relY: msg.relY,
                 time: msg.time,
                 tagname: element.tagName,
                 id: element.id,
@@ -73,8 +73,8 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
             sentResult = true;
             sendResponse({
                 result: 'summary',
-                x: msg.x,
-                y: msg.y,
+                relX: msg.relX,
+                relY: msg.relY,
                 time: msg.time,
                 tagname: element.tagName,
                 id: element.id,
