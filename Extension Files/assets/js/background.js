@@ -30,24 +30,40 @@ const iTraceChrome = {
     // this function takes the x and y coordinates from the screen and the browser
     // to get the offset, which then returns the translated coordinates based off if the user
     // is looking in or outside the viewport
+
     translateCoordinates: function (x, y) {
-        // screen dimensions
-        var screenX = iTraceChrome.screenWidth;
-        var screenY = iTraceChrome.screenHeight;
-
-        var offsetX = screenX - iTraceChrome.browserX;
-        var offsetY = screenY - iTraceChrome.browserY;
-
-        if (x < offsetX || y < offsetY) {
-            // user is looking outside of the broswer viewport, most likely at the broswer's shell
+        if (
+            iTraceChrome.viewportX == null ||
+            iTraceChrome.viewportY == null ||
+            iTraceChrome.browserWidth == null ||
+            iTraceChrome.browserHeight == null ||
+            iTraceChrome.dpr == null
+        ) {
             return null;
-        } else {
-            // user is looking in the broswer viewport, return the translated coordinates
-            return {x: x - offsetY, y: y - offsetX};
         }
+
+        const cssX = x / iTraceChrome.dpr;
+        const cssY = y / iTraceChrome.dpr;
+
+        // Translate into coordinates relative to viewport
+        const relX = cssX - iTraceChrome.viewportX;
+        const relY = cssY - iTraceChrome.viewportY - iTraceChrome.chromeUIHeight;
+
+        // Bounds check
+        if (
+            relX < 0 || // Not to the left of the viewportX
+            relY < 0 || // Not above viewportY
+            relX > iTraceChrome.browserWidth || // Not to the right of the window
+            relY > iTraceChrome.browserHeight // Not below the window
+        ) {
+            return null;
+        }
+
+        return {relX: relX, relY: relY};
     },
 
     // this function groups files by their name, param data are the files
+
     groupByFilename: function (data) {
         return data.reduce(function (objectsByKeyValue, obj) {
             var value = obj.filename;
@@ -96,7 +112,7 @@ const iTraceChrome = {
 
     // this function takes the data from the session and adds it to the iTraceChrome's sessionData attribute
     // and stores it in objectStore
-    printResults: function (response) {
+    printResults: function (response, x, y) {
         chrome.tabs.query({active: true, currentWindow: true}).then((tabs) => {
             iTraceChrome.currentUrl = tabs[0].url;
             // user is looking off screen
@@ -107,8 +123,10 @@ const iTraceChrome = {
                 filename: iTraceChrome.fileLocation,
                 timestamp: response.time,
                 current_timestamp: new Date().getTime(),
-                x: response.x,
-                y: response.y,
+                x: x,
+                y: y,
+                relX: response.relX,
+                relY: response.relY,
                 area: response.result,
                 line: response.line,
                 word: response.word,
@@ -211,7 +229,7 @@ const iTraceChrome = {
         // get translated coordinates
         var coords = iTraceChrome.translateCoordinates(x, y);
 
-        if (!coords || isNaN(x) || isNaN(y)) {
+        if (!coords || isNaN(coords.relX) || isNaN(coords.relY)) {
             // user is not looking in the html viewport
         } else {
             // user is looking in the html viewport
@@ -222,100 +240,100 @@ const iTraceChrome = {
                 if (url.includes('stackoverflow.com/questions/')) {
                     chrome.tabs.sendMessage(iTraceChrome.id, {
                         text: 'get_so_coordinate',
-                        x: coords.x,
-                        y: coords.y,
+                        relX: coords.relX,
+                        relY: coords.relY,
                         time: timeStamp,
                         url: url
                     }).then(response => {
-                        iTraceChrome.printResults(response);
+                        iTraceChrome.printResults(response, x, y);
                     });
                 }
                 if (url.includes('https://bug')) { // NOTE: This include may be incorect, will need to do some more research
                     chrome.tabs.sendMessage(iTraceChrome.id, {
                         text: 'get_bz_coordinate',
-                        x: coords.x,
-                        y: coords.y,
+                        relX: coords.relX,
+                        relY: coords.relY,
                         time: timeStamp,
                         url: url
                     }).then(response => {
-                        iTraceChrome.printResults(response);
+                        iTraceChrome.printResults(response, x, y);
                     });
                 }
                 if (url.includes('stackoverflow.com/search')) {
                     chrome.tabs.sendMessage(iTraceChrome.id, {
                         text: 'get_search_coordinate',
-                        x: coords.x,
-                        y: coords.y,
+                        relX: coords.relX,
+                        relY: coords.relY,
                         time: timeStamp,
                         url: url
                     }).then(response => {
-                        iTraceChrome.printResults(response);
+                        iTraceChrome.printResults(response, x, y);
                     });
                 }
                 if (url.includes('google.com')) {
                     chrome.tabs.sendMessage(iTraceChrome.id, {
                         text: 'get_google_coordinate',
-                        x: coords.x,
-                        y: coords.y,
+                        relX: coords.relX,
+                        relY: coords.relY,
                         time: timeStamp,
                         url: url
                     }).then(response => {
-                        iTraceChrome.printResults(response);
+                        iTraceChrome.printResults(response, x, y);
                     });
                 }
                 if (url.includes('github.com/*/*/issues')) {
                     chrome.tabs.sendMessage(iTraceChrome.id, {
                         text: 'get_github_issues_coordinate',
-                        x: coords.x,
-                        y: coords.y,
+                        relX: coords.relX,
+                        relY: coords.relY,
                         time: timeStamp,
                         url: url
                     }).then(response => {
-                        iTraceChrome.printResults(response);
+                        iTraceChrome.printResults(response, x, y);
                     });
                 }
                 if (url.includes('github.com/*/*/pulls')) {
                     chrome.tabs.sendMessage(iTraceChrome.id, {
                         text: 'get_github_prlist_coordinate',
-                        x: coords.x,
-                        y: coords.y,
+                        relX: coords.relX,
+                        relY: coords.relY,
                         time: timeStamp,
                         url: url
                     }).then(response => {
-                        iTraceChrome.printResults(response);
+                        iTraceChrome.printResults(response, x, y);
                     });
                 }
                 if (url.includes('github.com/*/*/pull')) {
                     chrome.tabs.sendMessage(iTraceChrome.id, {
                         text: 'get_github_pr_coordinate',
-                        x: coords.x,
-                        y: coords.y,
+                        relX: coords.relX,
+                        relY: coords.relY,
                         time: timeStamp,
                         url: url
                     }).then(response => {
-                        iTraceChrome.printResults(response);
+                        iTraceChrome.printResults(response, x, y);
                     });
                 }
                 if (url.includes('github.com') && url.includes('pull')) {
                     chrome.tabs.sendMessage(iTraceChrome.id, {
                         text: 'get_github_pr_coordinate',
-                        x: coords.x,
-                        y: coords.y,
+                        relX: coords.relX,
+                        relY: coords.relY,
                         time: timeStamp,
                         url: url
                     }).then(response => {
-                        iTraceChrome.printResults(response);
+                        iTraceChrome.printResults(response, x, y);
                     });
                 }
                 if (url.includes('github.com/')) {
                     chrome.tabs.sendMessage(iTraceChrome.id, {
                         text: 'get_github_dev_profile_coordinate',
-                        x: coords.x,
-                        y: coords.y,
+                        relX: coords.relX,
+                        relY: coords.relY,
                         time: timeStamp,
                         url: url
                     }).then(response => {
-                        iTraceChrome.printResults(response);
+                        iTraceChrome.printResults(response, x, y);
                     });
                 }
             });
@@ -351,35 +369,39 @@ const iTraceChrome = {
 
         chrome.scripting.executeScript({
             target: {tabId: iTraceChrome.id},
-            func: () => window.innerWidth
-        }).then((r) => iTraceChrome.getBrowserX([r[0].result]));
-
-        chrome.scripting.executeScript({
-            target: {tabId: iTraceChrome.id},
-            func: () => window.innerHeight
-        }).then((r) => iTraceChrome.getBrowserY([r[0].result]));
-
-        chrome.scripting.executeScript({
-            target: {tabId: iTraceChrome.id},
-            func: () => ({width: window.screen.width, height: window.screen.height})
-        }).then(results => {
-            const {width, height} = results[0].result;
-            iTraceChrome.screenWidth = width;
-            iTraceChrome.screenHeight = height;
+            func: () => ({
+                innerWidth: window.innerWidth,
+                innerHeight: window.innerHeight,
+                outerHeight: window.outerHeight,
+                screenX: window.screenX,
+                screenY: window.screenY,
+                devicePixelRatio: window.devicePixelRatio
+            })
+        }).then(r => {
+            const data = r[0].result;
+            iTraceChrome.browserWidth = data.innerWidth;
+            iTraceChrome.browserHeight = data.innerHeight;
+            iTraceChrome.chromeUIHeight = data.outerHeight - data.innerHeight;
+            iTraceChrome.viewportX = data.screenX;
+            iTraceChrome.viewportY = data.screenY;
+            iTraceChrome.dpr = data.devicePixelRatio;
 
             chrome.storage.local.set({
                 iTraceState: {
                     id: iTraceChrome.id,
                     fileLocation: iTraceChrome.fileLocation,
-                    browserX: iTraceChrome.browserX,
-                    browserY: iTraceChrome.browserY,
-                    screenWidth: iTraceChrome.screenWidth,
-                    screenHeight: iTraceChrome.screenHeight,
+                    // viewport vars tell us where the Chrome window begins in the top left corner relative to the screen
+                    // They are measured in Css pixels
+                    viewportX: iTraceChrome.viewportX,
+                    viewportY: iTraceChrome.viewportY,
+                    browserWidth: iTraceChrome.browserWidth,
+                    browserHeight: iTraceChrome.browserHeight,
+                    // Device Pixel Ratio
+                    dpr: iTraceChrome.dpr,
                     isActive: iTraceChrome.isActive
                 }
             });
         });
-
 
         chrome.runtime.sendMessage({type: "websocketStatus", status: "attempting"});
 

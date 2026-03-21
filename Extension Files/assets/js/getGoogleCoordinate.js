@@ -30,8 +30,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         return true;
     }
 
-    const elements = document.elementsFromPoint(msg.x, msg.y);
-    console.log("[ContentScript] Found", elements.length, "elements at point", msg.x, msg.y);
+    const elements = document.elementsFromPoint(msg.relX, msg.relY);
+    console.log("[ContentScript] Found", elements.length, "elements at point", msg.relX, msg.relY);
 
     let responseData = null;
 
@@ -44,8 +44,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
                 word: element.textContent,
                 url: msg.url,
                 time: msg.time,
-                x: msg.x,
-                y: msg.y,
+                relX: msg.relX,
+                relY: msg.relY,
                 tagname: element.tagName,
             };
             break;
@@ -57,8 +57,8 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
                 word: element.textContent,
                 url: msg.url,
                 time: msg.time,
-                x: msg.x,
-                y: msg.y,
+                relX: msg.relX,
+                relY: msg.relY,
                 tagname: element.tagName,
             };
             break;

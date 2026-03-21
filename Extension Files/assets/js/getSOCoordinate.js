@@ -26,7 +26,7 @@ console.log('Get SO Questions Coordinates Script Started');
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     var questionElement = document.getElementById('question');
     var answerElements = document.getElementById('answers').children;
-    var elements = document.elementsFromPoint(msg.x, msg.y);
+    var elements = document.elementsFromPoint(msg.relX, msg.relY);
 
     var sentResult = false;
     for (element of elements) {
@@ -38,8 +38,8 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                     sentResult = true;
                     sendResponse({
                         result: 'question code',
-                        x: msg.x,
-                        y: msg.y,
+                        relX: msg.relX,
+                        relY: msg.relY,
                         time: msg.time,
                         tagname: element.tagName,
                         id: element.id,
@@ -54,8 +54,8 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                         sentResult = true;
                         sendResponse({
                             result: 'answer code',
-                            x: msg.x,
-                            y: msg.y,
+                            relX: msg.relX,
+                            relY: msg.relY,
                             time: msg.time,
                             tagname: element.tagName,
                             id: element.id,
@@ -73,8 +73,8 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                     sentResult = true;
                     sendResponse({
                         result: 'question image',
-                        x: msg.x,
-                        y: msg.y,
+                        relX: msg.relX,
+                        relY: msg.relY,
                         time: msg.time,
                         tagname: element.tagName,
                         id: element.id,
@@ -89,8 +89,8 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                         sentResult = true;
                         sendResponse({
                             result: 'answer image',
-                            x: msg.x,
-                            y: msg.y,
+                            relX: msg.relX,
+                            relY: msg.relY,
                             time: msg.time,
                             tagname: element.tagName,
                             id: element.id,
@@ -109,8 +109,8 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                     sentResult = true;
                     sendResponse({
                         result: 'question text',
-                        x: msg.x,
-                        y: msg.y,
+                        relX: msg.relX,
+                        relY: msg.relY,
                         time: msg.time,
                         tagname: element.tagName,
                         id: element.id,
@@ -125,8 +125,8 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                         sentResult = true;
                         sendResponse({
                             result: 'answer text',
-                            x: msg.x,
-                            y: msg.y,
+                            relX: msg.relX,
+                            relY: msg.relY,
                             time: msg.time,
                             tagname: element.tagName,
                             id: element.id,
@@ -142,8 +142,8 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 sentResult = true;
                 sendResponse({
                     result: 'question tag',
-                    x: msg.x,
-                    y: msg.y,
+                    relX: msg.relX,
+                    relY: msg.relY,
                     time: msg.time,
                     tagname: element.tagName,
                     id: element.id,
@@ -159,8 +159,8 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                     sentResult = true;
                     sendResponse({
                         result: 'question vote',
-                        x: msg.x,
-                        y: msg.y,
+                        relX: msg.relX,
+                        relY: msg.relY,
                         time: msg.time,
                         tagname: element.tagName,
                         id: element.id,
@@ -175,8 +175,8 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                         sentResult = true;
                         sendResponse({
                             result: 'answer vote',
-                            x: msg.x,
-                            y: msg.y,
+                            relX: msg.relX,
+                            relY: msg.relY,
                             time: msg.time,
                             tagname: element.tagName,
                             id: element.id,
@@ -192,8 +192,8 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 sentResult = true;
                 sendResponse({
                     result: 'question-title',
-                    x: msg.x,
-                    y: msg.y,
+                    relX: msg.relX,
+                    relY: msg.relY,
                     time: msg.time,
                     tagname: element.tagName,
                     id: element.id,

@@ -14,7 +14,8 @@
     },
     {
       "matches": [
-        "*://bugs.eclipse.org/*", 
+        "*://bugzilla-dev.allizom.org/*",
+        "*://bugs.eclipse.org/*",
         "*://bugzilla.mozilla.org/*",
         "*://bugzilla.kernel.org/*",
         "*://bz.apache.org/*"
@@ -66,14 +67,6 @@
     {
       "matches": [
         "https://github.com/*/"
-      ],
-      "js": [
-        "/assets/js/getGithubDevProfileCoordinate.js"
-      ]
-    },
-    {
-      "matches": [
-        "https://github.com/*tab*"
       ],
       "js": [
         "/assets/js/getGithubDevProfileCoordinate.js"
