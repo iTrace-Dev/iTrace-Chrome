@@ -6,30 +6,83 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
         const relX = msg.relX;
         const relY = msg.relY;
         const elements = document.elementsFromPoint(relX, relY) || [];
+        let responseData = null;
 
         for (const element of elements) {
             if (!element) continue;
 
             const stimId = element.getAttribute && element.getAttribute('data-stim-id');
             if (stimId) {
-                sendResponse({
+                responseData = {
                     result: `${stimId}`,
                     relX: relX,
                     relY: relY,
                     time: msg.time,
                     id: element.id || null,
                     url: msg.url || location.href
-                });
-                console.log(`[${msg.time}] ${stimId}`)
-                return;
+                };
+                console.log("[ContentScript] Hit:", responseData);
+                break;
             }
         }
 
-        // Nothing matched.
-        sendResponse(null);
+        // Fallback path for non-interactive overlays (for example pointer-events:none).
+        // Use the same coordinate system as elementsFromPoint by temporarily enabling pointer events.
+        if (!responseData) {
+            const stimTargets = document.querySelectorAll('[data-stim-id]');
+            const previousPointerEvents = [];
+
+            try {
+                for (const element of stimTargets) {
+                    previousPointerEvents.push({
+                        element: element,
+                        value: element.style.getPropertyValue('pointer-events'),
+                        priority: element.style.getPropertyPriority('pointer-events')
+                    });
+                    element.style.setProperty('pointer-events', 'auto', 'important');
+                }
+
+                const fallbackElements = document.elementsFromPoint(relX, relY) || [];
+                for (const element of fallbackElements) {
+                    if (!element) continue;
+
+                    const stimId = element.getAttribute && element.getAttribute('data-stim-id');
+                    if (!stimId) continue;
+
+                    responseData = {
+                        result: `${stimId}`,
+                        relX: relX,
+                        relY: relY,
+                        time: msg.time,
+                        id: element.id || null,
+                        url: msg.url || location.href
+                    };
+                    console.log('[ContentScript] Hit via pointer-events fallback:', responseData);
+                    break;
+                }
+            } finally {
+                for (const previous of previousPointerEvents) {
+                    if (!previous.value) {
+                        previous.element.style.removeProperty('pointer-events');
+                    } else {
+                        previous.element.style.setProperty('pointer-events', previous.value, previous.priority || '');
+                    }
+                }
+            }
+        }
+
+        if (!responseData) {
+            responseData = {result: null};
+        }
+
+    
+    sendResponse(responseData);
+    return true;
+
     } catch (e) {
+        console.error('[ContentScript] Error while handling message:', e);
         try {
-            sendResponse(null);
+            sendResponse({ result: null, error: 'Handler failure' });
         } catch (er) {
         }
     }

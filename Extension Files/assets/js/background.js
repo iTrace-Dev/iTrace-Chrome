@@ -281,6 +281,19 @@ const iTraceChrome = {
                         iTraceChrome.printResults(response, x, y);
                     });
                 }
+                if (url.includes('seresl.unl.edu/itrace-webcam/')) {
+                    chrome.tabs.sendMessage(iTraceChrome.id, {
+                        text: 'get_itrace_webcam_coordinate',
+                        relX: coords.relX,
+                        relY: coords.relY,
+                        time: timeStamp,
+                        url: url
+                    }).then(response => {
+                        iTraceChrome.printResults(response, x, y);
+                    }).catch((err) => {
+                        console.warn('[iTrace] Webcam study message failed:', err && err.message ? err.message : err);
+                    });
+                }
                 if (url.includes('github.com/*/*/issues')) {
                     chrome.tabs.sendMessage(iTraceChrome.id, {
                         text: 'get_github_issues_coordinate',
