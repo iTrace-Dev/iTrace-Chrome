@@ -42,6 +42,14 @@
     },
     {
       "matches": [
+        "https://seresl.unl.edu/itrace-webcam/*"
+      ],
+      "js": [
+        "/assets/js/getiTraceWebcamStudy.js"
+      ]
+    },
+    {
+      "matches": [
         "https://github.com/*/*/issues*"
       ],
       "js": [
