@@ -26,6 +26,7 @@ chrome.runtime.onStartup.addListener(() => {
         }
     });
 });
+
 const iTraceChrome = {
     // this function takes the x and y coordinates from the screen and the browser
     // to get the offset, which then returns the translated coordinates based off if the user
@@ -112,8 +113,8 @@ const iTraceChrome = {
 
     // this function takes the data from the session and adds it to the iTraceChrome's sessionData attribute
     // and stores it in objectStore
-    printResults: function (response, x, y) {
-        chrome.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
+    printResults: function (response, x, y, trackerName, trackerSerial) {
+        chrome.tabs.query({active: true, currentWindow: true}).then((tabs) => {
             iTraceChrome.currentUrl = tabs[0].url;
             // user is looking off screen
             if (!response || response.result == null) {
@@ -131,6 +132,8 @@ const iTraceChrome = {
                 word: response.word,
                 tagname: response.tagname,
                 id: response.id,
+                tracker_name: trackerName || null,
+                tracker_serial: trackerSerial || null,
                 url: iTraceChrome.currentUrl
             };
             if (response.line !== undefined && response.line !== null && response.line !== "") {
@@ -204,29 +207,51 @@ const iTraceChrome = {
 
     // this function deals with incoming eyegaze data
     webSocketHandler: function (e) {
-        var eyeGazeData = e.data;
+        var eyeGazeData = e && e.data != null ? String(e.data).trim() : "";
+        if (!eyeGazeData) {
+            return;
+        }
+
+        var tokens = eyeGazeData.split(',');
+        var eventType = (tokens[0] || "").trim();
 
         // sets the file's location upon session start
-        if (eyeGazeData.substring(0, eyeGazeData.indexOf(',')) == 'session_start') {
-            var tmp = eyeGazeData.substring(eyeGazeData.indexOf(',') + 1);
-            tmp = tmp.substring(tmp.indexOf(',') + 1);
-            iTraceChrome.fileLocation = tmp.substring(0, tmp.indexOf(','));
+        if (eventType === 'session_start') {
+            const sessionId = (tokens[1] || "").trim();
+            const sessionTimestamp = (tokens[2] || "").trim();
+            const dataRootDirectory = (tokens[3] || "").trim();
+            const activeTrackerList = (tokens[4] || "").trim();
+
+            iTraceChrome.fileLocation = sessionId || iTraceChrome.fileLocation;
+            iTraceChrome.sessionStartTimestamp = sessionTimestamp || null;
+            iTraceChrome.dataRootDirectory = dataRootDirectory || null;
+            iTraceChrome.activeTrackerList = activeTrackerList || null;
             return;
         }
         // if session is no longer active, then set iTraceChrome's active status to false
-        else if (eyeGazeData.substring(0, eyeGazeData.indexOf(',')) == "session_end") {
+        else if (eventType === "session_end") {
             iTraceChrome.isActive = false;
+            return;
         }
-        var timeStampAndCoords = eyeGazeData.substring(eyeGazeData.indexOf(',') + 1);
-        var timeStamp = timeStampAndCoords.substring(0, timeStampAndCoords.indexOf(','));
-        var coordString = timeStampAndCoords.substring(timeStampAndCoords.indexOf(',') + 1);
 
-        var x = coordString.substring(0, coordString.indexOf(','));
-        var y = coordString.substring(coordString.indexOf(',') + 1, coordString.length);
+        if (eventType !== 'gaze') {
+            return;
+        }
+
+        var trackerName = (tokens[1] || "").trim();
+        var trackerSerial = (tokens[2] || "").trim();
+        var timeStamp = (tokens[3] || "").trim();
+
+        var x = (tokens[4] || "").trim();
+        var y = (tokens[5] || "").trim();
 
         // parse values
-        x = parseInt(x);
-        y = parseInt(y);
+        x = parseInt(x, 10);
+        y = parseInt(y, 10);
+
+        if (isNaN(x) || isNaN(y)) {
+            return;
+        }
 
         // get translated coordinates
         var coords = iTraceChrome.translateCoordinates(x, y);
@@ -247,7 +272,7 @@ const iTraceChrome = {
                         time: timeStamp,
                         url: url
                     }).then(response => {
-                        iTraceChrome.printResults(response, x, y);
+                        iTraceChrome.printResults(response, x, y, trackerName, trackerSerial);
                     });
                 }
                 if (url.includes('https://bug')) { // NOTE: This include may be incorect, will need to do some more research
@@ -258,7 +283,7 @@ const iTraceChrome = {
                         time: timeStamp,
                         url: url
                     }).then(response => {
-                        iTraceChrome.printResults(response, x, y);
+                        iTraceChrome.printResults(response, x, y, trackerName, trackerSerial);
                     });
                 }
                 if (url.includes('stackoverflow.com/search')) {
@@ -269,7 +294,7 @@ const iTraceChrome = {
                         time: timeStamp,
                         url: url
                     }).then(response => {
-                        iTraceChrome.printResults(response, x, y);
+                        iTraceChrome.printResults(response, x, y, trackerName, trackerSerial);
                     });
                 }
                 if (url.includes('google.com')) {
@@ -280,7 +305,7 @@ const iTraceChrome = {
                         time: timeStamp,
                         url: url
                     }).then(response => {
-                        iTraceChrome.printResults(response, x, y);
+                        iTraceChrome.printResults(response, x, y, trackerName, trackerSerial);
                     });
                 }
                 if (url.includes('seresl.unl.edu/itrace-webcam/')) {
@@ -291,7 +316,7 @@ const iTraceChrome = {
                         time: timeStamp,
                         url: url
                     }).then(response => {
-                        iTraceChrome.printResults(response, x, y);
+                        iTraceChrome.printResults(response, x, y, trackerName, trackerSerial);
                     }).catch((err) => {
                         console.warn('[iTrace] Webcam study message failed:', err && err.message ? err.message : err);
                     });
@@ -304,7 +329,7 @@ const iTraceChrome = {
                         time: timeStamp,
                         url: url
                     }).then(response => {
-                        iTraceChrome.printResults(response, x, y);
+                        iTraceChrome.printResults(response, x, y, trackerName, trackerSerial);
                     });
                 }
                 if (url.includes('github.com/*/*/pulls')) {
@@ -315,7 +340,7 @@ const iTraceChrome = {
                         time: timeStamp,
                         url: url
                     }).then(response => {
-                        iTraceChrome.printResults(response, x, y);
+                        iTraceChrome.printResults(response, x, y, trackerName, trackerSerial);
                     });
                 }
                 if (url.includes('github.com/*/*/pull')) {
@@ -326,7 +351,7 @@ const iTraceChrome = {
                         time: timeStamp,
                         url: url
                     }).then(response => {
-                        iTraceChrome.printResults(response, x, y);
+                        iTraceChrome.printResults(response, x, y, trackerName, trackerSerial);
                     });
                 }
                 if (url.includes('github.com') && url.includes('pull')) {
@@ -337,7 +362,7 @@ const iTraceChrome = {
                         time: timeStamp,
                         url: url
                     }).then(response => {
-                        iTraceChrome.printResults(response, x, y);
+                        iTraceChrome.printResults(response, x, y, trackerName, trackerSerial);
                     });
                 }
                 if (url.includes('github.com/')) {
@@ -348,7 +373,7 @@ const iTraceChrome = {
                         time: timeStamp,
                         url: url
                     }).then(response => {
-                        iTraceChrome.printResults(response, x, y);
+                        iTraceChrome.printResults(response, x, y, trackerName, trackerSerial);
                     });
                 }
             });
@@ -476,6 +501,9 @@ const iTraceChrome = {
     },
     isInitialized: false,
     fileLocation: "",
+    sessionStartTimestamp: null,
+    dataRootDirectory: null,
+    activeTrackerList: null,
     isActive: false,
     sessionData: [],
     currentUrl: "",

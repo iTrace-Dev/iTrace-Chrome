@@ -4,6 +4,18 @@ console.log('iTrace Webcam Study Script Started');
 // If the hit target is in a code line wrapper, include that line number too.
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     try {
+        const resolveCodeLine = function (element, stimOwner) {
+            const lineOwnerFromElement = element && element.closest ? element.closest('[data-code-line]') : null;
+            const lineOwnerFromStim = stimOwner && stimOwner.closest ? stimOwner.closest('[data-code-line]') : null;
+            const lineValue =
+                (lineOwnerFromElement && lineOwnerFromElement.getAttribute && lineOwnerFromElement.getAttribute('data-code-line')) ||
+                (lineOwnerFromStim && lineOwnerFromStim.getAttribute && lineOwnerFromStim.getAttribute('data-code-line')) ||
+                (element && element.getAttribute && element.getAttribute('data-code-line')) ||
+                (stimOwner && stimOwner.getAttribute && stimOwner.getAttribute('data-code-line'));
+
+            return lineValue || undefined;
+        };
+
         const relX = msg.relX;
         const relY = msg.relY;
         const elements = document.elementsFromPoint(relX, relY) || [];
@@ -17,18 +29,11 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 ? stimOwner.getAttribute('data-stim-id')
                 : null;
             if (stimId) {
-<<<<<<< Updated upstream
-                responseData = {
-=======
-                const codeLineOwner = element.closest ? element.closest('[data-code-line]') : null;
-                const codeLine = codeLineOwner && codeLineOwner.getAttribute
-                    ? codeLineOwner.getAttribute('data-code-line')
-                    : null;
+                const codeLine = resolveCodeLine(element, stimOwner);
 
-                sendResponse({
->>>>>>> Stashed changes
+                responseData = {
                     result: `${stimId}`,
-                    line: codeLine || undefined,
+                    line: codeLine,
                     relX: relX,
                     relY: relY,
                     time: msg.time,
@@ -60,11 +65,17 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 for (const element of fallbackElements) {
                     if (!element) continue;
 
-                    const stimId = element.getAttribute && element.getAttribute('data-stim-id');
+                    const stimOwner = element.closest ? element.closest('[data-stim-id]') : null;
+                    const stimId = stimOwner && stimOwner.getAttribute
+                        ? stimOwner.getAttribute('data-stim-id')
+                        : null;
                     if (!stimId) continue;
+
+                    const codeLine = resolveCodeLine(element, stimOwner);
 
                     responseData = {
                         result: `${stimId}`,
+                        line: codeLine,
                         relX: relX,
                         relY: relY,
                         time: msg.time,
