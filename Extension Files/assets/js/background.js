@@ -59,7 +59,7 @@ const iTraceChrome = {
             return null;
         }
 
-        return {relX: relX, relY: relY};
+        return { relX: relX, relY: relY };
     },
 
     // this function groups files by their name, param data are the files
@@ -113,7 +113,7 @@ const iTraceChrome = {
     // this function takes the data from the session and adds it to the iTraceChrome's sessionData attribute
     // and stores it in objectStore
     printResults: function (response, x, y) {
-        chrome.tabs.query({active: true, currentWindow: true}).then((tabs) => {
+        chrome.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
             iTraceChrome.currentUrl = tabs[0].url;
             // user is looking off screen
             if (!response || response.result == null) {
@@ -128,12 +128,14 @@ const iTraceChrome = {
                 relX: response.relX,
                 relY: response.relY,
                 area: response.result,
-                line: response.line,
                 word: response.word,
                 tagname: response.tagname,
                 id: response.id,
                 url: iTraceChrome.currentUrl
             };
+            if (response.line !== undefined && response.line !== null && response.line !== "") {
+                sessionDataItem.line = response.line;
+            }
             iTraceChrome.sessionData.push(sessionDataItem);
 
             if (iTraceChrome.db != null) {
@@ -157,7 +159,7 @@ const iTraceChrome = {
             // call method to parse JSON to xml string, then write to file
             if (!file || file === "undefined") continue;
             var xmlString = iTraceChrome.json2xml(sessionsData[file]);
-            var xmlBlob = new Blob([xmlString], {type: "text/xml"});
+            var xmlBlob = new Blob([xmlString], { type: "text/xml" });
 
             var reader = new FileReader();
             reader.onload = function () {
@@ -234,7 +236,7 @@ const iTraceChrome = {
         } else {
             // user is looking in the html viewport
             // need to check which website the user is looking at
-            chrome.tabs.query({active: true, currentWindow: true}).then((tabs) => {
+            chrome.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
                 let url = tabs[0].url;
                 console.log(tabs[0].url);
                 if (url.includes('stackoverflow.com/questions/')) {
@@ -381,7 +383,7 @@ const iTraceChrome = {
         iTraceChrome.isActive = true;
 
         chrome.scripting.executeScript({
-            target: {tabId: iTraceChrome.id},
+            target: { tabId: iTraceChrome.id },
             func: () => ({
                 innerWidth: window.innerWidth,
                 innerHeight: window.innerHeight,
@@ -416,18 +418,18 @@ const iTraceChrome = {
             });
         });
 
-        chrome.runtime.sendMessage({type: "websocketStatus", status: "attempting"});
+        chrome.runtime.sendMessage({ type: "websocketStatus", status: "attempting" });
 
         iTraceChrome.websocket.onopen = () => {
-            chrome.runtime.sendMessage({type: "websocketStatus", status: "connected"});
+            chrome.runtime.sendMessage({ type: "websocketStatus", status: "connected" });
         };
 
         iTraceChrome.websocket.onclose = () => {
-            chrome.runtime.sendMessage({type: "websocketStatus", status: "disconnected"});
+            chrome.runtime.sendMessage({ type: "websocketStatus", status: "disconnected" });
         };
 
         iTraceChrome.websocket.onerror = (err) => {
-            chrome.runtime.sendMessage({type: "websocketStatus", status: "error", error: err.message});
+            chrome.runtime.sendMessage({ type: "websocketStatus", status: "error", error: err.message });
         };
     },
 
@@ -443,7 +445,7 @@ const iTraceChrome = {
         }
         request.onupgradeneeded = function (event) {
             var db = event.target.result;
-            db.createObjectStore("sessionData", {keyPath: "timestamp"});
+            db.createObjectStore("sessionData", { keyPath: "timestamp" });
         }
         request.onsuccess = function (event) {
             iTraceChrome.db = event.target.result;

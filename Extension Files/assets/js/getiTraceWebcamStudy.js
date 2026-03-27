@@ -1,6 +1,7 @@
 console.log('iTrace Webcam Study Script Started');
 
-// Looks at the element under the coordinates and logs its data-stim-id.
+// Looks at the element under the coordinates and returns its data-stim-id.
+// If the hit target is in a code line wrapper, include that line number too.
 chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     try {
         const relX = msg.relX;
@@ -11,10 +12,23 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
         for (const element of elements) {
             if (!element) continue;
 
-            const stimId = element.getAttribute && element.getAttribute('data-stim-id');
+            const stimOwner = element.closest ? element.closest('[data-stim-id]') : null;
+            const stimId = stimOwner && stimOwner.getAttribute
+                ? stimOwner.getAttribute('data-stim-id')
+                : null;
             if (stimId) {
+<<<<<<< Updated upstream
                 responseData = {
+=======
+                const codeLineOwner = element.closest ? element.closest('[data-code-line]') : null;
+                const codeLine = codeLineOwner && codeLineOwner.getAttribute
+                    ? codeLineOwner.getAttribute('data-code-line')
+                    : null;
+
+                sendResponse({
+>>>>>>> Stashed changes
                     result: `${stimId}`,
+                    line: codeLine || undefined,
                     relX: relX,
                     relY: relY,
                     time: msg.time,
