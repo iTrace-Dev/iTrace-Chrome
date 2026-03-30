@@ -117,23 +117,32 @@ const iTraceChrome = {
             iTraceChrome.currentUrl = tabs[0].url;
             // user is looking off screen
             if (!response || response.result == null) {
-                return;
+                var sessionDataItem = {
+                    filename: iTraceChrome.fileLocation,
+                    timestamp: response.time,
+                    current_timestamp: new Date().getTime(),
+                    x: x,
+                    y: y,
+                    relX: response.relX,
+                    relY: response.relY
+                };
+            } else {
+                var sessionDataItem = {
+                    filename: iTraceChrome.fileLocation,
+                    timestamp: response.time,
+                    current_timestamp: new Date().getTime(),
+                    x: x,
+                    y: y,
+                    relX: response.relX,
+                    relY: response.relY,
+                    area: response.result,
+                    line: response.line,
+                    word: response.word,
+                    tagname: response.tagname,
+                    id: response.id,
+                    url: iTraceChrome.currentUrl
+                };
             }
-            var sessionDataItem = {
-                filename: iTraceChrome.fileLocation,
-                timestamp: response.time,
-                current_timestamp: new Date().getTime(),
-                x: x,
-                y: y,
-                relX: response.relX,
-                relY: response.relY,
-                area: response.result,
-                line: response.line,
-                word: response.word,
-                tagname: response.tagname,
-                id: response.id,
-                url: iTraceChrome.currentUrl
-            };
             iTraceChrome.sessionData.push(sessionDataItem);
 
             if (iTraceChrome.db != null) {
