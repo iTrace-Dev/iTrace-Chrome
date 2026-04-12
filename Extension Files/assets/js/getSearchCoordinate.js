@@ -87,6 +87,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     if (!sentResult) {
         sendResponse({
             result: null,
+            time: msg.time,
             relX: msg.relX,
             relY: msg.relY
         })

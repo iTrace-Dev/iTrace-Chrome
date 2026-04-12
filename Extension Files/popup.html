@@ -1,18 +1,25 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>iTrace-Chrome Plugin</title>
-        <script src="assets/js/jquery-3.3.1.js"></script>
-        <script src="assets/js/lodash.js"></script>
-        <script src="assets/js/main.js"></script>
-    </head>
-    <body>
-        <div style="width:500px; border: 1px solid black">
-            Click Button Below to Connect To Server
-            <button id="start_session">Start</button>
-            <div id="session_status">Not Connected To Core</div>
-        </div>
-        <hr/>
-        <button id="write_xml">Write XML Data</button>
-    </body>
+<head>
+    <title>iTrace-Chrome Plugin</title>
+    <script src="assets/js/jquery-3.3.1.js"></script>
+    <script src="assets/js/lodash.js"></script>
+    <script src="assets/js/main.js"></script>
+</head>
+<body>
+<div id="main_window" style="width:500px; border: 1px solid black">
+    Click Button Below to Connect To Server
+    <button id="start_session">Start</button>
+    <div id="session_status">Not Connected To Core</div>
+</div>
+
+<div id="config_window" style="width:500px; border: 1px solid black; display:none;">
+    <label for="empty_responses">Empty Script Response</label>
+    <input id="empty_responses" type="checkbox">
+</div>
+<hr/>
+<button id="write_xml">Write XML Data</button>
+<button id="config">Config</button>
+<button id="back_to_main" style="display: none">Back</button>
+</body>
 </html>

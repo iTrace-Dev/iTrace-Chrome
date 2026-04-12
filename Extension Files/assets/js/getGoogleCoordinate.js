@@ -69,6 +69,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         console.log("[ContentScript] No matching element found");
         responseData = {
             result: null,
+            time: msg.time,
             relX: msg.relX,
             relY: msg.relY
         };

@@ -253,6 +253,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
         // nothing matched
         sendResponse({
                 result: null,
+                time: msg.time,
                 relX: msg.relX,
                 relY: msg.relY
             }
@@ -261,6 +262,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
         try {
             sendResponse({
                     result: null,
+                    time: msg.time,
                     relX: msg.relX,
                     relY: msg.relY
                 }
