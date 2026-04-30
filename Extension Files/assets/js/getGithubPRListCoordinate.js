@@ -251,10 +251,22 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
         }
 
         // nothing matched
-        sendResponse(null);
+        sendResponse({
+                result: null,
+                time: msg.time,
+                relX: msg.relX,
+                relY: msg.relY
+            }
+        )
     } catch (e) {
         try {
-            sendResponse(null);
+            sendResponse({
+                    result: null,
+                    time: msg.time,
+                    relX: msg.relX,
+                    relY: msg.relY
+                }
+            )
         } catch (er) {
         }
     }

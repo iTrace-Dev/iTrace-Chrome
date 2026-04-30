@@ -115,32 +115,48 @@ const iTraceChrome = {
     printResults: function (response, x, y) {
         chrome.tabs.query({active: true, currentWindow: true}).then((tabs) => {
             iTraceChrome.currentUrl = tabs[0].url;
-            // user is looking off screen
-            if (!response || response.result == null) {
-                return;
+
+            let sessionDataItem;
+            if ((!response || response.result == null) && iTraceChrome.emptyResponsesEnabled) {
+                sessionDataItem = {
+                    aoi_detected: "No_Hit",
+                    filename: iTraceChrome.fileLocation,
+                    timestamp: Number(response?.time) || Date.now(),
+                    current_timestamp: Date.now(),
+                    x: x,
+                    y: y,
+                    relX: response?.relX ?? null,
+                    relY: response?.relY ?? null,
+                    url: iTraceChrome.currentUrl
+                };
+            } else if (response && response.result != null) {
+                sessionDataItem = {
+                    aoi_detected: "AOI_Hit",
+                    filename: iTraceChrome.fileLocation,
+                    timestamp: Number(response?.time) || Date.now(),
+                    current_timestamp: Date.now(),
+                    x: x,
+                    y: y,
+                    relX: response.relX,
+                    relY: response.relY,
+                    area: response.result,
+                    line: response.line,
+                    word: response.word,
+                    tagname: response.tagname,
+                    id: response.id,
+                    url: iTraceChrome.currentUrl
+                };
             }
-            var sessionDataItem = {
-                filename: iTraceChrome.fileLocation,
-                timestamp: response.time,
-                current_timestamp: new Date().getTime(),
-                x: x,
-                y: y,
-                relX: response.relX,
-                relY: response.relY,
-                area: response.result,
-                line: response.line,
-                word: response.word,
-                tagname: response.tagname,
-                id: response.id,
-                url: iTraceChrome.currentUrl
-            };
-            iTraceChrome.sessionData.push(sessionDataItem);
 
-            if (iTraceChrome.db != null) {
-                var transaction = iTraceChrome.db.transaction(["sessionData"], "readwrite");
+            if (sessionDataItem) {
+                iTraceChrome.sessionData.push(sessionDataItem);
 
-                var objectStore = transaction.objectStore("sessionData");
-                objectStore.add(sessionDataItem)
+                if (iTraceChrome.db != null) {
+                    const transaction = iTraceChrome.db.transaction(["sessionData"], "readwrite");
+
+                    const objectStore = transaction.objectStore("sessionData");
+                    objectStore.add(sessionDataItem)
+                }
             }
         });
     },
@@ -390,6 +406,7 @@ const iTraceChrome = {
                 iTraceState: {
                     id: iTraceChrome.id,
                     fileLocation: iTraceChrome.fileLocation,
+                    emptyResponsesEnabled: iTraceChrome.emptyResponsesEnabled,
                     // viewport vars tell us where the Chrome window begins in the top left corner relative to the screen
                     // They are measured in Css pixels
                     viewportX: iTraceChrome.viewportX,
@@ -483,5 +500,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
     if (message.type === "isActiveITraceChrome") {
         sendResponse(iTraceChrome.isActive);
+    }
+
+    if (message.type === "toggleEmptyResponses") {
+        iTraceChrome.emptyResponsesEnabled = message.enabled;
+
+        chrome.storage.local.set({
+            emptyResponsesEnabled: message.enabled
+        });
+
+        console.log("Empty responses enabled:", iTraceChrome.emptyResponsesEnabled);
     }
 });
