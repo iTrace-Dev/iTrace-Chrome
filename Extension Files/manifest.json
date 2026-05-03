@@ -85,6 +85,7 @@
     "default_popup": "popup.html"
   },
   "permissions": [
+    "webNavigation",
     "storage",
     "scripting",
     "tabs",
