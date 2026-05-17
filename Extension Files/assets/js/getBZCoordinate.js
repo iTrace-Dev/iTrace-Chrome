@@ -18,82 +18,87 @@
  ************************************************************************************************************************
  ********************************/
 
-console.log('Get BZ Coordinates Script Started');
-
 // listens for data of the different BZ columns and the data associated with and logs it
-chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
-    var elements = document.elementsFromPoint(msg.relX, msg.relY);
+if (window.iTrace_getBZCoordinate_Loaded) {
+} else {
+    window.iTrace_getBZCoordinate_Loaded = true;
+    console.log('Get BZ Coordinates Script Started');
 
-    var sentResult = false;
-    for (element of elements) {
-        if (element.classList.contains('module-categories')) {
-            console.log('question info - categories');
-            sentResult = true;
-            sendResponse({
-                result: 'question info - categories',
-                relX: msg.relX,
-                relY: msg.relY,
-                time: msg.time,
-                tagname: element.tagName,
-                id: element.id,
-                url: msg.url
-            });
-            return;
-        }
+    chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
 
-        if (element.id === 'module-tracking') {
-            console.log('question info - tracking');
-            sentResult = true;
-            sendResponse({
-                result: 'question info - tracking',
-                relX: msg.relX,
-                relY: msg.relY,
-                time: msg.time,
-                tagname: element.tagName,
-                id: element.id,
-                url: msg.url
-            });
-            return;
-        }
+        var elements = document.elementsFromPoint(msg.relX, msg.relY);
 
-        if (element.classList.contains('comment-text')) {
-            console.log('answer info');
-            sentResult = true;
-            sendResponse({
-                result: 'answer info',
-                relX: msg.relX,
-                relY: msg.relY,
-                time: msg.time,
-                tagname: element.tagName,
-                id: element.id,
-                url: msg.url
-            });
-            return;
-        }
-
-        if (element.tagName == 'TR') {
-            console.log('attachment info');
-            sentResult = true;
-            sendResponse({
-                result: 'attachment info',
-                relX: msg.relX,
-                relY: msg.relY,
-                time: msg.time,
-                tagname: element.tagName,
-                id: element.id,
-                url: msg.url
-            });
-            return;
-        }
-    }
-
-    if (!sentResult) {
-        sendResponse({
-                result: null,
-                time: msg.time,
-                relX: msg.relX,
-                relY: msg.relY
+        var sentResult = false;
+        for (element of elements) {
+            if (element.classList.contains('module-categories')) {
+                console.log('question info - categories');
+                sentResult = true;
+                sendResponse({
+                    result: 'question info - categories',
+                    relX: msg.relX,
+                    relY: msg.relY,
+                    time: msg.time,
+                    tagname: element.tagName,
+                    id: element.id,
+                    url: msg.url
+                });
+                return;
             }
-        )
-    }
-});
+
+            if (element.id === 'module-tracking') {
+                console.log('question info - tracking');
+                sentResult = true;
+                sendResponse({
+                    result: 'question info - tracking',
+                    relX: msg.relX,
+                    relY: msg.relY,
+                    time: msg.time,
+                    tagname: element.tagName,
+                    id: element.id,
+                    url: msg.url
+                });
+                return;
+            }
+
+            if (element.classList.contains('comment-text')) {
+                console.log('answer info');
+                sentResult = true;
+                sendResponse({
+                    result: 'answer info',
+                    relX: msg.relX,
+                    relY: msg.relY,
+                    time: msg.time,
+                    tagname: element.tagName,
+                    id: element.id,
+                    url: msg.url
+                });
+                return;
+            }
+
+            if (element.tagName == 'TR') {
+                console.log('attachment info');
+                sentResult = true;
+                sendResponse({
+                    result: 'attachment info',
+                    relX: msg.relX,
+                    relY: msg.relY,
+                    time: msg.time,
+                    tagname: element.tagName,
+                    id: element.id,
+                    url: msg.url
+                });
+                return;
+            }
+        }
+
+        if (!sentResult) {
+            sendResponse({
+                    result: null,
+                    time: msg.time,
+                    relX: msg.relX,
+                    relY: msg.relY
+                }
+            )
+        }
+    });
+}

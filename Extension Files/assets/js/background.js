@@ -420,39 +420,8 @@ const iTraceChrome = {
     db: null
 }
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.type === "isInitializedITraceChrome") {
-        sendResponse(iTraceChrome.isInitialized);
-    }
-    if (message.type === "initializeITraceChrome") {
-        iTraceChrome.initialize()
-    }
-    if (message.type === "writeXMLDataITraceChrome") {
-        console.log("writeXMLDataITraceChrome");
-        iTraceChrome.writeXMLData();
-    }
-    if (message.type === "startSessionITraceChrome") {
-        iTraceChrome.startSession(message.vars[0]);
-    }
-    if (message.type === "isActiveITraceChrome") {
-        sendResponse(iTraceChrome.isActive);
-    }
+function injectScriptForUrl(tabId, url) {
 
-    if (message.type === "toggleEmptyResponses") {
-        iTraceChrome.emptyResponsesEnabled = message.enabled;
-
-        chrome.storage.local.set({
-            emptyResponsesEnabled: message.enabled
-        });
-
-        console.log("Empty responses enabled:", iTraceChrome.emptyResponsesEnabled);
-    }
-});
-
-chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
-    const {tabId, url} = details;
-
-    if (!url) return;
 
     let file = null;
 
@@ -460,7 +429,7 @@ chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
         file = '/assets/js/getSOCoordinate.js';
     } else if (url.includes('stackoverflow.com/search')) {
         file = '/assets/js/getSearchCoordinate.js';
-    } else if (url.includes('https://bug')) {
+    } else if (url.includes('bugzilla') || url.includes('bugs.eclipse.org') || url.includes('bz.apache.org')) {
         file = '/assets/js/getBZCoordinate.js';
     } else if (url.includes('google.com')) {
         file = '/assets/js/getGoogleCoordinate.js';
@@ -474,10 +443,52 @@ chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
         file = '/assets/js/getGithubDevProfileCoordinate.js';
     }
 
-    if (file) {
-        chrome.scripting.executeScript({
-            target: {tabId},
-            files: [file]
-        });
+    if (!file) return;
+    console.log("Injected:", file, url);
+    chrome.scripting.executeScript({
+        target: {tabId},
+        files: [file]
+    }).catch(err => {
+        console.warn("Injection failed:", err);
+    });
+}
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+        if (message.type === "isInitializedITraceChrome") {
+            sendResponse(iTraceChrome.isInitialized);
+        }
+        if (message.type === "initializeITraceChrome") {
+            iTraceChrome.initialize()
+        }
+        if (message.type === "writeXMLDataITraceChrome") {
+            console.log("writeXMLDataITraceChrome");
+            iTraceChrome.writeXMLData();
+        }
+        if (message.type === "startSessionITraceChrome") {
+            iTraceChrome.startSession(message.vars[0]);
+        }
+        if (message.type === "isActiveITraceChrome") {
+            sendResponse(iTraceChrome.isActive);
+        }
+
+        if (message.type === "toggleEmptyResponses") {
+            iTraceChrome.emptyResponsesEnabled = message.enabled;
+
+            chrome.storage.local.set({
+                emptyResponsesEnabled: message.enabled
+            });
+
+            console.log("Empty responses enabled:", iTraceChrome.emptyResponsesEnabled);
+        }
+    }
+)
+
+chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
+    injectScriptForUrl(details.tabId, details.url);
+});
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+    if (changeInfo.status === "complete" && tab.url) {
+        injectScriptForUrl(tabId, tab.url);
     }
 });
