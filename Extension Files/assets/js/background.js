@@ -24,6 +24,8 @@ chrome.runtime.onStartup.addListener(() => {
         if (data.iTraceState) {
             Object.assign(iTraceChrome, data.iTraceState);
         }
+        iTraceChrome.isActive = false;
+        iTraceChrome.websocket = null;
     });
 });
 const iTraceChrome = {
@@ -230,6 +232,18 @@ const iTraceChrome = {
         // if session is no longer active, then set iTraceChrome's active status to false
         else if (eyeGazeData.substring(0, eyeGazeData.indexOf(',')) == "session_end") {
             iTraceChrome.isActive = false;
+
+            chrome.runtime.sendMessage({
+                type: "websocketStatus",
+                status: "disconnected"
+            });
+
+            if (iTraceChrome.websocket) {
+                iTraceChrome.websocket.close();
+                iTraceChrome.websocket = null;
+            }
+
+            return;
         }
         var timeStampAndCoords = eyeGazeData.substring(eyeGazeData.indexOf(',') + 1);
         var timeStamp = timeStampAndCoords.substring(0, timeStampAndCoords.indexOf(','));
@@ -414,8 +428,7 @@ const iTraceChrome = {
                     browserWidth: iTraceChrome.browserWidth,
                     browserHeight: iTraceChrome.browserHeight,
                     // Device Pixel Ratio
-                    dpr: iTraceChrome.dpr,
-                    isActive: iTraceChrome.isActive
+                    dpr: iTraceChrome.dpr
                 }
             });
         });
