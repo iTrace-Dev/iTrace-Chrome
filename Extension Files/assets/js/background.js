@@ -240,7 +240,6 @@ const iTraceChrome = {
 
             if (iTraceChrome.websocket) {
                 iTraceChrome.websocket.close();
-                iTraceChrome.websocket = null;
             }
 
             return;
@@ -391,6 +390,11 @@ const iTraceChrome = {
         iTraceChrome.id = iTraceChrome.tab.id;
         console.log('START SESSION');
 
+        if (iTraceChrome.websocket) {
+            iTraceChrome.websocket.close();
+            iTraceChrome.websocket = null;
+        }
+
         iTraceChrome.websocket = new WebSocket('ws://localhost:7007');
 
         // listen for eye gaze data coming from the server
@@ -436,10 +440,13 @@ const iTraceChrome = {
         chrome.runtime.sendMessage({type: "websocketStatus", status: "attempting"});
 
         iTraceChrome.websocket.onopen = () => {
+            iTraceChrome.isActive = true;
             chrome.runtime.sendMessage({type: "websocketStatus", status: "connected"});
         };
 
         iTraceChrome.websocket.onclose = () => {
+            iTraceChrome.isActive = false;
+            iTraceChrome.websocket = null;
             chrome.runtime.sendMessage({type: "websocketStatus", status: "disconnected"});
         };
 
