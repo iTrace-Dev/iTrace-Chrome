@@ -19,7 +19,7 @@
  ********************************/
 
 // main JavaScript driver for the iTrace-Chrome plugin, all data will be handled here
-this.isActive = false;
+this.isSessionActive = false;
 this.sessionData = [];
 this.currentUrl = "";
 
@@ -69,8 +69,21 @@ $(document).ready(function () {
         });
     });
 
+    $("#persist_core_connection").on("change", function () {
+        const enabled = $(this).is(":checked");
+
+        chrome.runtime.sendMessage({
+            type: "togglePersistCoreConnection",
+            enabled: enabled
+        });
+    });
+
     chrome.storage.local.get("emptyResponsesEnabled", (data) => {
         $("#empty_responses").prop("checked", data.emptyResponsesEnabled || false);
+    });
+
+    chrome.storage.local.get("persistCoreConnectionEnabled", (data) => {
+        $("#persist_core_connection").prop("checked", data.persistCoreConnectionEnabled || false);
     });
 
     chrome.runtime.sendMessage({type: "isActiveITraceChrome"}, (response) => {

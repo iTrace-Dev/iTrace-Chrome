@@ -24,7 +24,7 @@ chrome.runtime.onStartup.addListener(() => {
         if (data.iTraceState) {
             Object.assign(iTraceChrome, data.iTraceState);
         }
-        iTraceChrome.isActive = false;
+        iTraceChrome.isSessionActive = false;
         iTraceChrome.websocket = null;
     });
 });
@@ -231,7 +231,7 @@ const iTraceChrome = {
         }
         // if session is no longer active, then set iTraceChrome's active status to false
         else if (eyeGazeData.substring(0, eyeGazeData.indexOf(',')) == "session_end") {
-            iTraceChrome.isActive = false;
+            iTraceChrome.isSessionActive = false;
 
             chrome.runtime.sendMessage({
                 type: "websocketStatus",
@@ -399,7 +399,7 @@ const iTraceChrome = {
 
         // listen for eye gaze data coming from the server
         iTraceChrome.websocket.onmessage = iTraceChrome.webSocketHandler.bind(iTraceChrome);
-        iTraceChrome.isActive = true;
+        iTraceChrome.isSessionActive = true;
 
         chrome.scripting.executeScript({
             target: {tabId: iTraceChrome.id},
@@ -425,6 +425,7 @@ const iTraceChrome = {
                     id: iTraceChrome.id,
                     fileLocation: iTraceChrome.fileLocation,
                     emptyResponsesEnabled: iTraceChrome.emptyResponsesEnabled,
+                    persistCoreConnectionEnabled: iTraceChrome.persistCoreConnectionEnabled,
                     // viewport vars tell us where the Chrome window begins in the top left corner relative to the screen
                     // They are measured in Css pixels
                     viewportX: iTraceChrome.viewportX,
@@ -440,12 +441,12 @@ const iTraceChrome = {
         chrome.runtime.sendMessage({type: "websocketStatus", status: "attempting"});
 
         iTraceChrome.websocket.onopen = () => {
-            iTraceChrome.isActive = true;
+            iTraceChrome.isSessionActive = true;
             chrome.runtime.sendMessage({type: "websocketStatus", status: "connected"});
         };
 
         iTraceChrome.websocket.onclose = () => {
-            iTraceChrome.isActive = false;
+            iTraceChrome.isSessionActive = false;
             iTraceChrome.websocket = null;
             chrome.runtime.sendMessage({type: "websocketStatus", status: "disconnected"});
         };
@@ -498,7 +499,7 @@ const iTraceChrome = {
     },
     isInitialized: false,
     fileLocation: "",
-    isActive: false,
+    isSessionActive: false,
     sessionData: [],
     currentUrl: "",
     db: null
@@ -519,7 +520,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         iTraceChrome.startSession(message.vars[0]);
     }
     if (message.type === "isActiveITraceChrome") {
-        sendResponse(iTraceChrome.isActive);
+        sendResponse(iTraceChrome.isSessionActive);
     }
 
     if (message.type === "toggleEmptyResponses") {
@@ -530,5 +531,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         });
 
         console.log("Empty responses enabled:", iTraceChrome.emptyResponsesEnabled);
+    }
+
+    if (message.type === "togglePersistCoreConnection") {
+        iTraceChrome.persistCoreConnectionEnabled = message.enabled;
+
+        chrome.storage.local.set({
+            persistCoreConnectionEnabled: message.enabled
+        });
+
+        console.log("Persist core connection enabled:", iTraceChrome.persistCoreConnectionEnabled);
     }
 });
