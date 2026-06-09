@@ -25,6 +25,7 @@ chrome.runtime.onStartup.addListener(() => {
             Object.assign(iTraceChrome, data.iTraceState);
         }
         iTraceChrome.isSessionActive = false;
+        iTraceChrome.isConnectedToCore = false;
         iTraceChrome.websocket = null;
     });
 });
@@ -165,9 +166,6 @@ const iTraceChrome = {
 
     // writes the sessionData in XML and downloads the file, then resets sessionData and clears objectStore
     writeXMLData: function () {
-        if (iTraceChrome.websocket != null) {
-            iTraceChrome.websocket.close();
-        }
 
         var sessionsData = iTraceChrome.groupByFilename(iTraceChrome.sessionData);
 
@@ -227,19 +225,38 @@ const iTraceChrome = {
             var tmp = eyeGazeData.substring(eyeGazeData.indexOf(',') + 1);
             tmp = tmp.substring(tmp.indexOf(',') + 1);
             iTraceChrome.fileLocation = tmp.substring(0, tmp.indexOf(','));
+            iTraceChrome.isSessionActive = true;
+
+            chrome.runtime.sendMessage({
+                type: "sessionStatus",
+                status: "started"
+            });
+
             return;
         }
         // if session is no longer active, then set iTraceChrome's active status to false
-        else if (eyeGazeData.substring(0, eyeGazeData.indexOf(',')) == "session_end") {
+        else if (eyeGazeData.substring(0, eyeGazeData.indexOf(',')) == "") {
             iTraceChrome.isSessionActive = false;
 
-            chrome.runtime.sendMessage({
-                type: "websocketStatus",
-                status: "disconnected"
-            });
+            if (!iTraceChrome.persistCoreConnectionEnabled) {
+                chrome.runtime.sendMessage({
+                    type: "websocketStatus",
+                    status: "disconnected"
+                });
 
-            if (iTraceChrome.websocket) {
-                iTraceChrome.websocket.close();
+                chrome.runtime.sendMessage({
+                    type: "sessionStatus",
+                    status: "ended"
+                });
+
+                if (iTraceChrome.websocket) {
+                    iTraceChrome.websocket.close();
+                }
+            } else {
+                chrome.runtime.sendMessage({
+                    type: "sessionStatus",
+                    status: "ended"
+                });
             }
 
             return;
@@ -265,7 +282,6 @@ const iTraceChrome = {
             // need to check which website the user is looking at
             chrome.tabs.query({active: true, currentWindow: true}).then((tabs) => {
                 let url = tabs[0].url;
-                console.log(tabs[0].url);
                 if (url.includes('stackoverflow.com/questions/')) {
                     chrome.tabs.sendMessage(iTraceChrome.id, {
                         text: 'get_so_coordinate',
@@ -399,7 +415,6 @@ const iTraceChrome = {
 
         // listen for eye gaze data coming from the server
         iTraceChrome.websocket.onmessage = iTraceChrome.webSocketHandler.bind(iTraceChrome);
-        iTraceChrome.isSessionActive = true;
 
         chrome.scripting.executeScript({
             target: {tabId: iTraceChrome.id},
@@ -441,11 +456,12 @@ const iTraceChrome = {
         chrome.runtime.sendMessage({type: "websocketStatus", status: "attempting"});
 
         iTraceChrome.websocket.onopen = () => {
-            iTraceChrome.isSessionActive = true;
+            iTraceChrome.isConnectedToCore = true;
             chrome.runtime.sendMessage({type: "websocketStatus", status: "connected"});
         };
 
         iTraceChrome.websocket.onclose = () => {
+            iTraceChrome.isConnectedToCore = false;
             iTraceChrome.isSessionActive = false;
             iTraceChrome.websocket = null;
             chrome.runtime.sendMessage({type: "websocketStatus", status: "disconnected"});
@@ -500,6 +516,7 @@ const iTraceChrome = {
     isInitialized: false,
     fileLocation: "",
     isSessionActive: false,
+    isConnectedToCore: false,
     sessionData: [],
     currentUrl: "",
     db: null
@@ -518,6 +535,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
     if (message.type === "startSessionITraceChrome") {
         iTraceChrome.startSession(message.vars[0]);
+    }
+    if (message.type === "isConnectedITraceChrome") {
+        sendResponse(iTraceChrome.isConnectedToCore);
     }
     if (message.type === "isActiveITraceChrome") {
         sendResponse(iTraceChrome.isSessionActive);

@@ -37,7 +37,7 @@ $(document).ready(function () {
     $("#start_session").on("click", function (event) {
         chrome.tabs.query({active: true, currentWindow: true}).then((tabs) => {
             chrome.runtime.sendMessage({type: "startSessionITraceChrome", vars: [tabs]}, () => {
-                $("#session_status").html("Session Started - Attempting to Connect");
+                $("#websocket_status").html("Attempting to Connect to Core");
             });
         });
     });
@@ -86,10 +86,16 @@ $(document).ready(function () {
         $("#persist_core_connection").prop("checked", data.persistCoreConnectionEnabled || false);
     });
 
+    chrome.runtime.sendMessage({type: "isConnectedITraceChrome"}, (response) => {
+        $("#websocket_status").html(
+            response ? "Connected To Core" : "Not Connected To Core"
+        );
+    });
+
     chrome.runtime.sendMessage({type: "isActiveITraceChrome"}, (response) => {
-        if (response) {
-            $("#session_status").html("Session Started - Connected");
-        }
+        $("#session_status").html(
+            response ? "Session Started" : "No Active Session"
+        );
     });
 });
 
@@ -97,11 +103,21 @@ $(document).ready(function () {
 chrome.runtime.onMessage.addListener((message) => {
     if (message.type === "websocketStatus") {
         if (message.status === "connected") {
-            $("#session_status").html("Session Started - Connected");
+            $("#websocket_status").html("Connected To Core");
         } else if (message.status === "disconnected") {
-            $("#session_status").html("Not Connected To Core");
+            $("#websocket_status").html("Not Connected To Core");
         } else if (message.status === "error") {
-            $("#session_status").html("Connection Error: " + message.error);
+            $("#websocket_status").html("Connection Error: " + message.error);
+        }
+    }
+
+    if (message.type === "sessionStatus") {
+        if (message.status === "started") {
+            $("#session_status").html("Session Started");
+        }
+
+        if (message.status === "ended") {
+            $("#session_status").html("No Active Session");
         }
     }
 });
