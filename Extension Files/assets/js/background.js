@@ -19,6 +19,9 @@
  ********************************/
 // importScripts("jquery-3.3.1.js");
 // main JavaScript driver for the iTrace-Chrome plugin, all data will be handled here
+
+reinjectAllTabs();
+
 chrome.runtime.onStartup.addListener(() => {
     chrome.storage.local.get("iTraceState", (data) => {
         if (data.iTraceState) {
@@ -26,6 +29,7 @@ chrome.runtime.onStartup.addListener(() => {
         }
     });
 });
+
 const iTraceChrome = {
     // this function takes the x and y coordinates from the screen and the browser
     // to get the offset, which then returns the translated coordinates based off if the user
@@ -248,7 +252,17 @@ const iTraceChrome = {
         }).then(response => {
             iTraceChrome.printResults(response, x, y);
         }).catch(err => {
-            console.warn("Content script not ready:", err);
+            if (
+                err.message &&
+                err.message.includes("Receiving end does not exist")
+            ) {
+
+                chrome.tabs.get(tabId, (tab) => {
+                    if (tab?.url) {
+                        injectScriptForUrl(tabId, tab.url);
+                    }
+                });
+            }
         });
     },
 
@@ -421,8 +435,6 @@ const iTraceChrome = {
 }
 
 function injectScriptForUrl(tabId, url) {
-
-
     let file = null;
 
     if (url.includes('stackoverflow.com/questions/')) {
@@ -450,6 +462,16 @@ function injectScriptForUrl(tabId, url) {
         files: [file]
     }).catch(err => {
         console.warn("Injection failed:", err);
+    });
+}
+
+function reinjectAllTabs() {
+    chrome.tabs.query({}, (tabs) => {
+        tabs.forEach((tab) => {
+            if (tab.id && tab.url) {
+                injectScriptForUrl(tab.id, tab.url);
+            }
+        });
     });
 }
 
