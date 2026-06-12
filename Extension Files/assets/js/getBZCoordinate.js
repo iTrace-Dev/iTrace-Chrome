@@ -26,7 +26,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
 
     var sentResult = false;
     for (element of elements) {
-        if (element.classList.contains('module-categories')) {
+        if (element.id === 'module-categories') {
             console.log('question info - categories');
             sentResult = true;
             sendResponse({
@@ -56,11 +56,11 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
             return;
         }
 
-        if (element.classList.contains('comment-text')) {
-            console.log('answer info');
+        if (element.id === 'module-attachments') {
+            console.log('attachment info');
             sentResult = true;
             sendResponse({
-                result: 'answer info',
+                result: 'attachment info',
                 relX: msg.relX,
                 relY: msg.relY,
                 time: msg.time,
@@ -71,11 +71,11 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
             return;
         }
 
-        if (element.tagName == 'TR') {
-            console.log('attachment info');
+        if (element.classList.contains('comment-text')) {
+            console.log('answer info');
             sentResult = true;
             sendResponse({
-                result: 'attachment info',
+                result: 'answer info',
                 relX: msg.relX,
                 relY: msg.relY,
                 time: msg.time,

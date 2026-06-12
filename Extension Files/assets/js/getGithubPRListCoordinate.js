@@ -58,72 +58,23 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 return;
             }
 
-            // Organization (legacy org link)
-            if (element.classList && element.classList.contains('url') && element.classList.contains('fn') && element.tagName === 'A') {
-                const attr = element.getAttribute('data-hovercard-type');
-                if (attr === 'organization') {
-                    const organization = element.textContent.trim();
-                    sendResponse({
-                        result: `Organization - ${organization}`,
-                        relX: relX,
-                        relY: relY,
-                        time: msg.time,
-                        id: element.id || null,
-                        url: msg.url || location.href
-                    });
-                    return;
-                }
-            }
+            // Organization/Project Link
+            if (element.dataset.component === "Breadcrumbs.Item") {
+                console.log("Project/Organization Name");
 
-            // ProjectName
-            if (element.tagName === 'A') {
-                const projNode = element.closest && element.closest('strong[itemprop="name"]');
-                if (projNode) {
-                    const projectName = element.textContent.trim();
-                    sendResponse({
-                        result: `ProjectName - ${projectName}`,
-                        relX: relX,
-                        relY: relY,
-                        time: msg.time,
-                        id: element.id || null,
-                        url: msg.url || location.href
-                    });
-                    return;
-                }
-            }
+                const organization = element.textContent.trim();
 
-            // NumOfStarred
-            if (element.tagName === 'A') {
-                const starCounter = element.querySelector && element.querySelector('#repo-stars-counter-star, .js-social-count, .Counter.js-social-count');
-                if (starCounter) {
-                    const numberStarred = starCounter.textContent.trim();
-                    sendResponse({
-                        result: `NumOfStarred-${numberStarred}`,
-                        relX: relX,
-                        relY: relY,
-                        time: msg.time,
-                        id: starCounter.id || element.id || null,
-                        url: msg.url || location.href
-                    });
-                    return;
-                }
-            }
-
-            // NumOfForked
-            if (element.tagName === 'A') {
-                const forkCounter = element.querySelector && element.querySelector('#repo-network-counter, .Counter, .Counter.js-social-count');
-                if (forkCounter && (forkCounter.id === 'repo-network-counter' || forkCounter.classList.contains('Counter') || forkCounter.classList.contains('js-social-count'))) {
-                    const numberForked = forkCounter.textContent.trim();
-                    sendResponse({
-                        result: `NumOfForked-${numberForked}`,
-                        relX: relX,
-                        relY: relY,
-                        time: msg.time,
-                        id: forkCounter.id || element.id || null,
-                        url: msg.url || location.href
-                    });
-                    return;
-                }
+                sentResult = true;
+                sendResponse({
+                    result: `Organization/ProjectName-${organization}`,
+                    relX: msg.relX,
+                    relY: msg.relY,
+                    time: msg.time,
+                    tagname: element.tagName,
+                    id: element.id,
+                    url: msg.url
+                });
+                return;
             }
 
             // Username
@@ -176,44 +127,6 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                         relX: relX,
                         relY: relY,
                         time: msg.time,
-                        url: msg.url || location.href
-                    });
-                    return;
-                }
-            }
-
-            // PR status: review required / approvals / changes requested
-            if (element.tagName === 'A') {
-                const aria = (element.getAttribute('aria-label') || '').toLowerCase();
-                if (aria.includes('review required')) {
-                    sendResponse({
-                        result: `PRStatus-Review Required`,
-                        relX: relX,
-                        relY: relY,
-                        time: msg.time,
-                        id: element.id || null,
-                        url: msg.url || location.href
-                    });
-                    return;
-                }
-                if (aria.includes('review approval') || aria.includes('review approvals') || /\d+\s+review\s+approvals?/.test(aria)) {
-                    sendResponse({
-                        result: `PRStatus-Approval`,
-                        relX: relX,
-                        relY: relY,
-                        time: msg.time,
-                        id: element.id || null,
-                        url: msg.url || location.href
-                    });
-                    return;
-                }
-                if (aria.includes('requesting changes') || aria.includes('changes requested') || aria.includes('request changes')) {
-                    sendResponse({
-                        result: `PRStatus-Changes Requested`,
-                        relX: relX,
-                        relY: relY,
-                        time: msg.time,
-                        id: element.id || null,
                         url: msg.url || location.href
                     });
                     return;
@@ -277,8 +190,6 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
  * - Num PR Open/Closed
  * - Project name
  * - Organization name
- * - Number of forked
- * - Number of starred
  * - Number of comments on PR
  * - Username (opened PR)
  * - PR Title

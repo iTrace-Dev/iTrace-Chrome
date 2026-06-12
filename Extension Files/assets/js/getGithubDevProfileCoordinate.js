@@ -37,30 +37,13 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 relX: msg.relX,
                 relY: msg.relY,
                 time: msg.time,
+                tagname: element.tagName,
                 id: element.id,
                 url: msg.url
             });
             return;
         }
-        // Activity overview (deprecated?)
-        if (element.classList.contains("js-activity-overview-graph-container") && element.attributes.getNamedItem('data-percentages')) {
-            console.log("Activity Overview");
-            let activityOverview = element.attributes.getNamedItem('data-percentages').value;
-            activityOverview = JSON.parse(activityOverview);
-            const percentCommits = activityOverview["Commits"];
-            const percentCodeReview = activityOverview["Code review"];
-            const percentPullRequests = activityOverview["Pull requests"];
-            sentResult = true;
-            sendResponse({
-                result: `ActivityOverview-Commit:${percentCommits}%,CodeReview:${percentCodeReview}%,PullRequest:${percentPullRequests}%`,
-                relX: msg.relX,
-                relY: msg.relY,
-                time: msg.time,
-                id: element.id,
-                url: msg.url
-            });
-            return;
-        }
+
         // Contribution heat map
         if (element.tagName === 'DIV' && element.classList.contains("graph-before-activity-overview")) {
             console.log('Contribution Heat Map')
@@ -70,6 +53,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 relX: msg.relX,
                 relY: msg.relY,
                 time: msg.time,
+                tagname: element.tagName,
                 id: element.id,
                 url: msg.url
             });
@@ -85,6 +69,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 relX: msg.relX,
                 relY: msg.relY,
                 time: msg.time,
+                tagname: element.tagName,
                 id: element.id,
                 url: msg.url
             });
@@ -100,6 +85,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 relX: msg.relX,
                 relY: msg.relY,
                 time: msg.time,
+                tagname: element.tagName,
                 id: element.id,
                 url: msg.url
             });
@@ -115,6 +101,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 relX: msg.relX,
                 relY: msg.relY,
                 time: msg.time,
+                tagname: element.tagName,
                 id: element.id,
                 url: msg.url
             });
@@ -134,6 +121,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 relX: msg.relX,
                 relY: msg.relY,
                 time: msg.time,
+                tagname: element.tagName,
                 id: element.id,
                 url: msg.url
             });
@@ -148,6 +136,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 relX: msg.relX,
                 relY: msg.relY,
                 time: msg.time,
+                tagname: element.tagName,
                 id: element.id,
                 url: msg.url
             });
@@ -162,6 +151,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 relX: msg.relX,
                 relY: msg.relY,
                 time: msg.time,
+                tagname: element.tagName,
                 id: element.id,
                 url: msg.url
             });
@@ -176,6 +166,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 relX: msg.relX,
                 relY: msg.relY,
                 time: msg.time,
+                tagname: element.tagName,
                 id: element.id,
                 url: msg.url
             });
@@ -184,7 +175,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
         // Organization icon and link
         // if (element.tagName === 'A' && element.attributes.getNamedItem("data-hovercard-type") && element.attributes.getNamedItem("data-hovercard-type").value === "organization"
         // && element.classList.contains("avatar-group-item")) {
-        if (element.classList.contains("pt-3") && element.classList.contains("clearfix")) {
+        if (element.classList.contains("tmp-pt-3") && element.classList.contains("clearfix")) {
             console.log('Organizations Section');
             // const organizationName = element.attributes.getNamedItem("aria-label").value;
             sentResult = true;
@@ -193,21 +184,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 relX: msg.relX,
                 relY: msg.relY,
                 time: msg.time,
-                id: element.id,
-                url: msg.url
-            });
-            return;
-        }
-        // Contributed repository link (deprecated?)
-        if (element.tagName === 'A' && element.attributes.getNamedItem("itemprop") && element.attributes.getNamedItem("itemprop").value.includes("codeRepository")) {
-            console.log('Contributed repositories')
-            const repoName = element.innerHTML;
-            sentResult = true;
-            sendResponse({
-                result: `Repository-${repoName}`,
-                relX: msg.relX,
-                relY: msg.relY,
-                time: msg.time,
+                tagname: element.tagName,
                 id: element.id,
                 url: msg.url
             });
@@ -233,29 +210,38 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 relX: msg.relX,
                 relY: msg.relY,
                 time: msg.time,
+                tagname: element.tagName,
                 id: element.id,
                 url: msg.url
             });
             return;
         }
         // tab and counter
-        if (element.classList.contains("Counter")) {
-            console.log("Tab Counter")
-            const tab = element.parentElement.innerHTML;
-            const number = element.innerHTML
-            sentResult = true;
+        if (element.dataset.component === "counter") {
+            const tabElement = element.closest("a");
+            const tabName =
+                tabElement?.querySelector('[data-component="text"]')
+                    ?.textContent.trim() || "";
+
+            const number =
+                element.querySelector(".prc-CounterLabel-CounterLabel-X-kRU")
+                    ?.textContent.trim() || "";
+
+            console.log(`Tab Counter: ${tabName} (${number})`);
+
             sendResponse({
-                result: `Num${tab}-${number}`,
+                result: `Num${tabName}-${number}`,
                 relX: msg.relX,
                 relY: msg.relY,
                 time: msg.time,
+                tagname: element.tagName,
                 id: element.id,
                 url: msg.url
             });
             return;
         }
         // tab but no counter
-        if (element.classList.contains("UnderlineNav-item")) {
+        if (element.classList.contains("prc-UnderlineNav-UnderlineNavItem-syRjR")) {
             const tabName = element.innerText.replace(/\s+/g, ' ').trim(); // clean up whitespace
             console.log(`Tab (no counter) ${tabName}`)
             sentResult = true;
@@ -264,6 +250,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 relX: msg.relX,
                 relY: msg.relY,
                 time: msg.time,
+                tagname: element.tagName,
                 id: element.id,
                 url: msg.url
             });
@@ -272,18 +259,25 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
         // Contribution activity entry
         if (element.classList.contains("TimelineItem")) {
             console.log("Contribution Activity Entry");
-            const summary = element.querySelector("h4 span.color-fg-default");
-            activityText = summary ? summary.textContent.trim() : '';
 
-            sentResult = true;
+            const summary = element.querySelector(
+                "summary span.color-fg-default"
+            );
+
+            const activityText = summary
+                ? summary.textContent.replace(/\s+/g, " ").trim()
+                : "";
+
             sendResponse({
                 result: `ContributionActivity-${activityText}`,
                 relX: msg.relX,
                 relY: msg.relY,
                 time: msg.time,
+                tagname: element.tagName,
                 id: element.id,
                 url: msg.url
             });
+
             return;
         }
     }

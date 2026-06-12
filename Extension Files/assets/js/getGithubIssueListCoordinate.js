@@ -36,6 +36,24 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 relX: msg.relX,
                 relY: msg.relY,
                 time: msg.time,
+                tagname: element.tagName,
+                id: element.id,
+                url: msg.url
+            });
+            return;
+        }
+        if (element.dataset.component === "Breadcrumbs.Item") {
+            console.log("Project/Organization Name");
+
+            const organization = element.textContent.trim();
+
+            sentResult = true;
+            sendResponse({
+                result: `Organization/ProjectName-${organization}`,
+                relX: msg.relX,
+                relY: msg.relY,
+                time: msg.time,
+                tagname: element.tagName,
                 id: element.id,
                 url: msg.url
             });
@@ -47,22 +65,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
         ) {
             const type = element.getAttribute("data-hovercard-type");
             // This may need to be changed to include project names
-            if (type === "organization") {
-                console.log("Project/Organization Name");
-
-                const organization = element.textContent.trim();
-
-                sentResult = true;
-                sendResponse({
-                    result: `OrganizationName-${organization}`,
-                    relX: msg.relX,
-                    relY: msg.relY,
-                    time: msg.time,
-                    id: element.id,
-                    url: msg.url
-                });
-                return;
-            } else if (type === 'user') {
+            if (type === 'user') {
                 console.log('user link')
                 const user = element.innerHTML;
                 sentResult = true;
@@ -71,6 +74,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                     relX: msg.relX,
                     relY: msg.relY,
                     time: msg.time,
+                    tagname: element.tagName,
                     id: element.id,
                     url: msg.url
                 });
@@ -90,6 +94,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 relX: msg.relX,
                 relY: msg.relY,
                 time: msg.time,
+                tagname: element.tagName,
                 id: element.id,
                 url: msg.url
             });
@@ -108,6 +113,8 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                     relX: msg.relX,
                     relY: msg.relY,
                     time: msg.time,
+                    tagname: element.tagName,
+                    id: element.id,
                     url: msg.url
                 });
                 return;
@@ -129,6 +136,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 relX: msg.relX,
                 relY: msg.relY,
                 time: msg.time,
+                tagname: element.tagName,
                 id: element.id,
                 url: msg.url
             });
@@ -144,6 +152,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 relX: msg.relX,
                 relY: msg.relY,
                 time: msg.time,
+                tagname: element.tagName,
                 id: element.id,
                 url: msg.url
             });
@@ -159,6 +168,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 relX: msg.relX,
                 relY: msg.relY,
                 time: msg.time,
+                tagname: element.tagName,
                 id: element.id,
                 url: msg.url
             });

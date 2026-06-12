@@ -63,107 +63,110 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
         // }
 
         // Number of files changed
-        if (element.attributes.getNamedItem('href')?.value.includes("/files") && element.classList.contains('tabnav-tab')) {
-            console.log('# of files changed');
-            const filesCounter = element.querySelector('#files_tab_counter');
-            const filesCount = filesCounter ? filesCounter.innerHTML.trim() : 'Unknown';
-            sentResult = true;
-            sendResponse({
-                result: `NumOfFilesChanged-${filesCount}`,
-                relX: msg.relX,
-                relY: msg.relY,
-                time: msg.time,
-                id: element.id,
-                url: msg.url
-            });
-            return;
-        }
-        // Number of checks
-        if (element.attributes.getNamedItem('href')?.value.includes("/checks") && element.classList.contains('tabnav-tab')) {
-            console.log('# Checks');
-            const checksCounter = element.querySelector('#checks_tab_counter');
-            const checksCount = checksCounter ? checksCounter.innerHTML.trim() : 'Unknown';
-            sentResult = true;
-            sendResponse({
-                result: `NumOfChecks-${checksCount}`,
-                relX: msg.relX,
-                relY: msg.relY,
-                time: msg.time,
-                id: element.id,
-                url: msg.url
-            });
-            return;
-        }
-        // Number of commits
-        if (element.attributes.getNamedItem('href')?.value.includes("/commits") && element.classList.contains('tabnav-tab')) {
-            console.log('# Commits');
-            const commitCounter = element.querySelector('#commits_tab_counter');
-            const commitCount = commitCounter ? commitCounter.innerHTML.trim() : 'Unknown';
-            sentResult = true;
-            sendResponse({
-                result: `NumOfCommits-${commitCount}`,
-                relX: msg.relX,
-                relY: msg.relY,
-                time: msg.time,
-                id: element.id,
-                url: msg.url
-            });
-            return;
-        }
-        // Number of conversations
-        if (element.attributes.getNamedItem('href')?.value.includes("/pull/") && element.classList.contains('tabnav-tab') &&
-            element.querySelector('#conversation_tab_counter')) {
-            console.log('# Conversations');
-            const conversationCounter = element.querySelector('#conversation_tab_counter');
-            const conversationCount = conversationCounter ? conversationCounter.innerHTML.trim() : 'Unknown';
-            sentResult = true;
-            sendResponse({
-                result: `NumOfConversationComments-${conversationCount}`,
-                relX: msg.relX,
-                relY: msg.relY,
-                time: msg.time,
-                id: element.id,
-                url: msg.url
-            });
-            return;
-        }
-        // Number of total diffs
-        if (element.classList.contains('diffstat')) {
-            if (element.id === 'diffstat') {
-                console.log('Number of total diffs');
-                const diffAdd = element.querySelector(".color-fg-success");
-                const diffSub = element.querySelector(".color-fg-danger");
-                sentResult = true;
+        if (element.closest('a[href*="/changes"][role="tab"]')) {
+            const filesTab = element.closest('a[href*="/changes"][role="tab"]');
+            const counter = filesTab.querySelector(
+                '[data-component="CounterLabel"]'
+            );
+
+            if (counter) {
+                const filesCount = counter.textContent.trim();
+
+                console.log(`# Files Changed: ${filesCount}`);
+
                 sendResponse({
-                    result: `TotalDiffs- ${diffAdd}, ${diffSub}`,
+                    result: `NumOfFilesChanged-${filesCount}`,
                     relX: msg.relX,
                     relY: msg.relY,
                     time: msg.time,
-                    id: element.id,
+                    id: filesTab.id,
                     url: msg.url
                 });
+
                 return;
             }
-            // Number of file diffs (deprecated)
-            // if (element.classList.contains('tooltipped')) {
-            //   console.log('Number of file diffs');
-            //   const numChanges = element.attributes.getNamedItem('aria-label').value;
-            //   sentResult = true;
-            //   sendResponse({ result: `NumOfFileDiffs-${numChanges.trim()}`, relX: msg.relX, relY: msg.relY, time: msg.time, id: element.id, url: msg.url });
-            //   return;
-            // }
         }
-        // Deleted line of code
-        if (element.tagName === 'TD' && element.classList.contains('blob-code-deletion')) {
-            console.log('Deleted Line of Code');
-            let lineNumber = 0;
-            const lineNumberCell = element.previousElementSibling;
-            if (lineNumberCell && lineNumberCell.hasAttribute('data-line-number')) {
-                lineNumber = lineNumberCell.getAttribute('data-line-number');
+
+        // Number of checks
+        if (element.closest('a[href*="/checks"][role="tab"]')) {
+            const checksTab = element.closest('a[href*="/checks"][role="tab"]');
+            const counter = checksTab.querySelector(
+                '[data-component="CounterLabel"]'
+            );
+
+            if (counter) {
+                const checksCount = counter.textContent.trim();
+
+                console.log(`# Checks: ${checksCount}`);
+
+                sendResponse({
+                    result: `NumOfChecks-${checksCount}`,
+                    relX: msg.relX,
+                    relY: msg.relY,
+                    time: msg.time,
+                    id: checksTab.id,
+                    url: msg.url
+                });
+
+                return;
             }
+        }
+
+        // Number of commits
+        if (element.closest('a[href*="/commits"][role="tab"]')) {
+            const commitsTab = element.closest('a[href*="/commits"][role="tab"]');
+            const counter = commitsTab.querySelector(
+                '[data-component="CounterLabel"]'
+            );
+
+            if (counter) {
+                const commitCount = counter.textContent.trim();
+
+                console.log(`# Commits: ${commitCount}`);
+
+                sendResponse({
+                    result: `NumOfCommits-${commitCount}`,
+                    relX: msg.relX,
+                    relY: msg.relY,
+                    time: msg.time,
+                    id: commitsTab.id,
+                    url: msg.url
+                });
+
+                return;
+            }
+        }
+
+        // Number of conversation comments
+        if (element.closest('a[href*="/pull/"][role="tab"]')) {
+            const conversationTab = element.closest('a[href*="/pull/"][role="tab"]');
+            const counter = conversationTab.querySelector(
+                '[data-component="CounterLabel"]'
+            );
+
+            if (counter) {
+                const conversationCount = counter.textContent.trim();
+
+                console.log(`# Conversations: ${conversationCount}`);
+
+                sendResponse({
+                    result: `NumOfConversationComments-${conversationCount}`,
+                    relX: msg.relX,
+                    relY: msg.relY,
+                    time: msg.time,
+                    id: conversationTab.id,
+                    url: msg.url
+                });
+
+                return;
+            }
+        }
+        // Number of total diffs
+        if (element.closest('.PullRequestHeader-module__diffStatesWrapper__l3nLn')) {
+            const summary = element.closest('.PullRequestHeader-module__diffStatesWrapper__l3nLn').querySelector('.sr-only').textContent.trim();
             sentResult = true;
             sendResponse({
-                result: `DeletedLOC-${lineNumber}`,
+                result: `TotalDiffs-${summary}`,
                 relX: msg.relX,
                 relY: msg.relY,
                 time: msg.time,
@@ -173,17 +176,58 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
             return;
         }
         // Added line of code
-        if (element.tagName === 'TD' && element.classList.contains('blob-code-addition')) {
-            console.log('Added Line of Code');
-            let lineNumber = 0;
-            const lineNumberCell = element.previousElementSibling;
-            if (lineNumberCell && lineNumberCell.hasAttribute('data-line-number')) {
-                lineNumber = lineNumberCell.getAttribute('data-line-number');
-            }
+        if (element.closest('td.diff-text-cell[data-line-number]')) {
+            const diffCell = element.closest('td.diff-text-cell[data-line-number]');
+            const lineNumber = diffCell.getAttribute('data-line-number') || 'Unknown';
+            if (diffCell.querySelector('code.addition')) {
+                console.log(`Added Line of Code: ${lineNumber}`);
 
+                sendResponse({
+                    result: `AddedLOC-${lineNumber}`,
+                    relX: msg.relX,
+                    relY: msg.relY,
+                    time: msg.time,
+                    id: diffCell.id,
+                    url: msg.url
+                });
+
+                return;
+            } else if (diffCell.querySelector('code.deletion')) {
+                console.log(`Deleted Line of Code: ${lineNumber}`);
+
+                sendResponse({
+                    result: `DeletedLOC-${lineNumber}`,
+                    relX: msg.relX,
+                    relY: msg.relY,
+                    time: msg.time,
+                    id: diffCell.id,
+                    url: msg.url
+                });
+
+                return;
+            } else {
+                console.log(`Context Line of Code: ${lineNumber}`);
+
+                sendResponse({
+                    result: `ContextLOC-${lineNumber}`,
+                    relX: msg.relX,
+                    relY: msg.relY,
+                    time: msg.time,
+                    id: diffCell.id,
+                    url: msg.url
+                });
+
+                return;
+            }
+        }
+        // File Name
+        if (element.closest('a[href*="#diff-"]')) {
+            console.log("Filename")
+            // const fileName = element.attributes.getNamedItem('title').value;
+            const fileName = element.innerHTML;
             sentResult = true;
             sendResponse({
-                result: `AddedLOC-${lineNumber}`,
+                result: `File-${fileName.trim()}`,
                 relX: msg.relX,
                 relY: msg.relY,
                 time: msg.time,
@@ -192,56 +236,20 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
             });
             return;
         }
-        // Unchanged line of code
-        if (element.tagName === 'TD' && element.classList.contains('blob-code-context')) {
-            console.log('Unchanged Line of Code');
-            let lineNumber = 0;
-            const lineNumberCell = element.previousElementSibling;
-            if (lineNumberCell && lineNumberCell.hasAttribute('data-line-number')) {
-                lineNumber = lineNumberCell.getAttribute('data-line-number');
-            }
-            sendResponse({
-                result: `UnchangedLOC-${lineNumber}`,
-                relX: msg.relX,
-                relY: msg.relY,
-                time: msg.time,
-                id: element.id,
-                url: msg.url
-            });
-            return;
-        }
-        if (element.tagName === 'a' && element.attributes.getNamedItem('href')) {
-            // File name
-            if (element.attributes.getNamedItem('href').value.includes("#diff-") && element.classList.contains('text-mono')) {
-                console.log("Filename")
-                // const fileName = element.attributes.getNamedItem('title').value;
-                const fileName = element.innerHTML;
-                sentResult = true;
-                sendResponse({
-                    result: `File-${fileName.trim()}`,
-                    relX: msg.relX,
-                    relY: msg.relY,
-                    time: msg.time,
-                    id: element.id,
-                    url: msg.url
-                });
-                return;
-            }
+        if (element.closest('a[href*="/changes"]')) {
             // Commit name
-            if (element.attributes.getNamedItem('href').value.includes("commits/")) {
-                console.log("Commit name");
-                const commitTitle = element.innerHTML;
-                sentResult = true;
-                sendResponse({
-                    result: `CommitName-${commitTitle.trim()}`,
-                    relX: msg.relX,
-                    relY: msg.relY,
-                    time: msg.time,
-                    id: element.id,
-                    url: msg.url
-                });
-                return;
-            }
+            console.log("Commit name");
+            const commitTitle = element.innerHTML;
+            sentResult = true;
+            sendResponse({
+                result: `CommitName-${commitTitle.trim()}`,
+                relX: msg.relX,
+                relY: msg.relY,
+                time: msg.time,
+                id: element.id,
+                url: msg.url
+            });
+            return;
         }
         if (element.attributes.getNamedItem('data-hovercard-type') && element.attributes.getNamedItem('data-hovercard-type').value === 'user') {
             console.log('username')
@@ -259,11 +267,13 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 url: msg.url
             });
         }
-        if (element.classList.contains('js-issue-title')) {
+        if (element.closest('[data-component="PH_Title"]')) {
+            const titleSpan = element.closest('[data-component="PH_Title"]')?.querySelector('span');
+            const title = titleSpan?.textContent.trim();
             console.log('PR Title');
             sentResult = true;
             sendResponse({
-                result: `PRTitle-${element.innerHTML.trim()}`,
+                result: `PRTitle-${title}`,
                 relX: msg.relX,
                 relY: msg.relY,
                 time: msg.time,
@@ -328,7 +338,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
         if (element.classList.contains('IssueLabel')) {
             console.log("Issue Label");
             sentResult = true;
-            const labelName = element.firstChild.nextSibling ? element.firstChild.nextSibling.innerHTML : '';
+            const labelName = element.textContent.trim();
             sendResponse({
                 result: `IssueLabel-${labelName}`,
                 relX: msg.relX,
@@ -417,6 +427,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 return;
             }
             // Avatar in Comment Header
+            // Not entirely sure what this is referring to, may need to be updated
             if (element.classList.contains('rounded-1')) {
                 console.log('User avatar - Comment header');
                 sentResult = true;
