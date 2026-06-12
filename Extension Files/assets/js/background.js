@@ -507,14 +507,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
     injectScriptForUrl(details.tabId, details.url);
-    console.log("History Injected:", details.url);
 });
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-    console.log("TAB UPDATE", changeInfo);
-
     if (changeInfo.status === "complete" && tab.url) {
-        injectScriptForUrl(tabId, tab.url);
-        console.log("Update Injected:", tab.url);
+        injectScriptForUrl(tabId, tab.url);;
     }
 });
