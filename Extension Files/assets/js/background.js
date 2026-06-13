@@ -251,6 +251,7 @@ const iTraceChrome = {
                     iTraceChrome.websocket = null;
                     ws.close();
                 }
+                iTraceChrome.isConnectedToCore = false;
             } else {
                 chrome.runtime.sendMessage({type: "sessionStatus", status: "ended"}).catch(() => {
                 });

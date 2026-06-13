@@ -23,9 +23,6 @@ this.isSessionActive = false;
 this.sessionData = [];
 this.currentUrl = "";
 
-var _this = this;
-debugger;
-
 
 chrome.runtime.sendMessage({type: "isInitializedITraceChrome"}, (response) => {
     if (!response) {
@@ -36,9 +33,7 @@ chrome.runtime.sendMessage({type: "isInitializedITraceChrome"}, (response) => {
 $(document).ready(function () {
     $("#start_session").on("click", function (event) {
         chrome.tabs.query({active: true, currentWindow: true}).then((tabs) => {
-            chrome.runtime.sendMessage({type: "startSessionITraceChrome", vars: [tabs]}, () => {
-                $("#websocket_status").html("Attempting to Connect to Core");
-            });
+            chrome.runtime.sendMessage({type: "startSessionITraceChrome", vars: [tabs]});
         });
     });
 
@@ -102,7 +97,9 @@ $(document).ready(function () {
 /* This listener displays the HTML text upon its status*/
 chrome.runtime.onMessage.addListener((message) => {
     if (message.type === "websocketStatus") {
-        if (message.status === "connected") {
+        if (message.status === "attempting") {
+            $("#websocket_status").html("Attempting to Connect to Core");
+        } else if (message.status === "connected") {
             $("#websocket_status").html("Connected To Core");
         } else if (message.status === "disconnected") {
             $("#websocket_status").html("Not Connected To Core");
@@ -115,7 +112,6 @@ chrome.runtime.onMessage.addListener((message) => {
         if (message.status === "started") {
             $("#session_status").html("Session Started");
         }
-
         if (message.status === "ended") {
             $("#session_status").html("No Active Session");
         }
