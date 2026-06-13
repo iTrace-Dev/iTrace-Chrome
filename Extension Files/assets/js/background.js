@@ -239,27 +239,22 @@ const iTraceChrome = {
             iTraceChrome.isSessionActive = false;
 
             if (!iTraceChrome.persistCoreConnectionEnabled) {
-                chrome.runtime.sendMessage({
-                    type: "websocketStatus",
-                    status: "disconnected"
+                chrome.runtime.sendMessage({type: "websocketStatus", status: "disconnected"}).catch(() => {
                 });
-
-                chrome.runtime.sendMessage({
-                    type: "sessionStatus",
-                    status: "ended"
+                chrome.runtime.sendMessage({type: "sessionStatus", status: "ended"}).catch(() => {
                 });
 
                 if (iTraceChrome.websocket) {
-                    iTraceChrome.websocket.close();
+                    iTraceChrome.websocket.onmessage = null;
+                    iTraceChrome.websocket.onclose = null;
+                    const ws = iTraceChrome.websocket;
+                    iTraceChrome.websocket = null;
+                    ws.close();
                 }
             } else {
-                chrome.runtime.sendMessage({
-                    type: "sessionStatus",
-                    status: "ended"
+                chrome.runtime.sendMessage({type: "sessionStatus", status: "ended"}).catch(() => {
                 });
             }
-
-            return;
         }
         var timeStampAndCoords = eyeGazeData.substring(eyeGazeData.indexOf(',') + 1);
         var timeStamp = timeStampAndCoords.substring(0, timeStampAndCoords.indexOf(','));
