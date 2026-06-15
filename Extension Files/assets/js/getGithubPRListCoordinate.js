@@ -38,6 +38,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                     relX: relX,
                     relY: relY,
                     time: msg.time,
+                    tagname: element.tagName,
                     id: element.id || null,
                     url: msg.url || location.href
                 });
@@ -52,6 +53,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                     relX: relX,
                     relY: relY,
                     time: msg.time,
+                    tagname: element.tagName,
                     id: element.id || null,
                     url: msg.url || location.href
                 });
@@ -88,6 +90,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                             relX: relX,
                             relY: relY,
                             time: msg.time,
+                            tagname: element.tagName,
                             id: element.id || null,
                             url: msg.url || location.href
                         });
@@ -109,6 +112,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                         relX: relX,
                         relY: relY,
                         time: msg.time,
+                        tagname: element.tagName,
                         id: element.id || null,
                         url: msg.url || location.href
                     };
@@ -127,6 +131,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                         relX: relX,
                         relY: relY,
                         time: msg.time,
+                        tagname: element.tagName,
                         url: msg.url || location.href
                     });
                     return;
@@ -142,6 +147,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                     relX: relX,
                     relY: relY,
                     time: msg.time,
+                    tagname: element.tagName,
                     id: element.id || null,
                     url: msg.url || location.href
                 });
@@ -156,6 +162,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                     relX: relX,
                     relY: relY,
                     time: msg.time,
+                    tagname: element.tagName,
                     id: element.id || null,
                     url: msg.url || location.href
                 });

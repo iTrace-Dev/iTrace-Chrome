@@ -48,6 +48,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 relX: msg.relX,
                 relY: msg.relY,
                 time: msg.time,
+                tagname: element.tagName,
                 id: element.id,
                 url: msg.url
             });
@@ -79,6 +80,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                     relX: msg.relX,
                     relY: msg.relY,
                     time: msg.time,
+                    tagname: element.tagName,
                     id: filesTab.id,
                     url: msg.url
                 });
@@ -104,6 +106,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                     relX: msg.relX,
                     relY: msg.relY,
                     time: msg.time,
+                    tagname: element.tagName,
                     id: checksTab.id,
                     url: msg.url
                 });
@@ -129,6 +132,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                     relX: msg.relX,
                     relY: msg.relY,
                     time: msg.time,
+                    tagname: element.tagName,
                     id: commitsTab.id,
                     url: msg.url
                 });
@@ -154,6 +158,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                     relX: msg.relX,
                     relY: msg.relY,
                     time: msg.time,
+                    tagname: element.tagName,
                     id: conversationTab.id,
                     url: msg.url
                 });
@@ -170,6 +175,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 relX: msg.relX,
                 relY: msg.relY,
                 time: msg.time,
+                tagname: element.tagName,
                 id: element.id,
                 url: msg.url
             });
@@ -187,6 +193,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                     relX: msg.relX,
                     relY: msg.relY,
                     time: msg.time,
+                    tagname: element.tagName,
                     id: diffCell.id,
                     url: msg.url
                 });
@@ -200,6 +207,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                     relX: msg.relX,
                     relY: msg.relY,
                     time: msg.time,
+                    tagname: element.tagName,
                     id: diffCell.id,
                     url: msg.url
                 });
@@ -213,6 +221,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                     relX: msg.relX,
                     relY: msg.relY,
                     time: msg.time,
+                    tagname: element.tagName,
                     id: diffCell.id,
                     url: msg.url
                 });
@@ -231,6 +240,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 relX: msg.relX,
                 relY: msg.relY,
                 time: msg.time,
+                tagname: element.tagName,
                 id: element.id,
                 url: msg.url
             });
@@ -246,6 +256,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 relX: msg.relX,
                 relY: msg.relY,
                 time: msg.time,
+                tagname: element.tagName,
                 id: element.id,
                 url: msg.url
             });
@@ -263,6 +274,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 relX: msg.relX,
                 relY: msg.relY,
                 time: msg.time,
+                tagname: element.tagName,
                 id: element.id,
                 url: msg.url
             });
@@ -277,6 +289,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 relX: msg.relX,
                 relY: msg.relY,
                 time: msg.time,
+                tagname: element.tagName,
                 id: element.id,
                 url: msg.url
             });
@@ -291,6 +304,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 relX: msg.relX,
                 relY: msg.relY,
                 time: msg.time,
+                tagname: element.tagName,
                 id: element.id,
                 url: msg.url
             });
@@ -318,6 +332,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 relX: msg.relX,
                 relY: msg.relY,
                 time: msg.time,
+                tagname: element.tagName,
                 id: element.id,
                 url: msg.url
             });
@@ -330,6 +345,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 relX: msg.relX,
                 relY: msg.relY,
                 time: msg.time,
+                tagname: element.tagName,
                 id: element.id,
                 url: msg.url
             });
@@ -344,6 +360,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 relX: msg.relX,
                 relY: msg.relY,
                 time: msg.time,
+                tagname: element.tagName,
                 id: element.id,
                 url: msg.url
             });
@@ -357,6 +374,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 relX: msg.relX,
                 relY: msg.relY,
                 time: msg.time,
+                tagname: element.tagName,
                 id: element.id,
                 url: msg.url
             });
@@ -373,6 +391,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 relX: msg.relX,
                 relY: msg.relY,
                 time: msg.time,
+                tagname: element.tagName,
                 id: element.id,
                 url: msg.url
             });
@@ -389,6 +408,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 relX: msg.relX,
                 relY: msg.relY,
                 time: msg.time,
+                tagname: element.tagName,
                 id: element.id,
                 url: msg.url
             });
@@ -405,6 +425,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 relX: msg.relX,
                 relY: msg.relY,
                 time: msg.time,
+                tagname: element.tagName,
                 id: element.id,
                 url: msg.url
             });
@@ -421,6 +442,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                     relX: msg.relX,
                     relY: msg.relY,
                     time: msg.time,
+                    tagname: element.tagName,
                     id: element.id,
                     url: msg.url
                 });
@@ -437,6 +459,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                     relX: msg.relX,
                     relY: msg.relY,
                     time: msg.time,
+                    tagname: element.tagName,
                     id: element.id,
                     url: msg.url
                 });
@@ -452,6 +475,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                     relX: msg.relX,
                     relY: msg.relY,
                     time: msg.time,
+                    tagname: element.tagName,
                     id: element.id,
                     url: msg.url
                 });
@@ -467,6 +491,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                     relX: msg.relX,
                     relY: msg.relY,
                     time: msg.time,
+                    tagname: element.tagName,
                     id: element.id,
                     url: msg.url
                 });
@@ -482,6 +507,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                     relX: msg.relX,
                     relY: msg.relY,
                     time: msg.time,
+                    tagname: element.tagName,
                     id: element.id,
                     url: msg.url
                 });
