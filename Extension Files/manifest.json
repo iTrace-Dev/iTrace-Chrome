@@ -66,7 +66,7 @@
     },
     {
       "matches": [
-        "https://github.com/*/"
+        "https://github.com/*"
       ],
       "js": [
         "/assets/js/getGithubDevProfileCoordinate.js"
