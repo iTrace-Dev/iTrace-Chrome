@@ -85,6 +85,7 @@
     "default_popup": "popup.html"
   },
   "permissions": [
+    "webNavigation",
     "storage",
     "scripting",
     "tabs",
@@ -92,7 +93,14 @@
     "downloads"
   ],
   "host_permissions": [
-    "https://*.google.com/*"
+    "https://*.google.com/*",
+    "https://github.com/*",
+    "https://stackoverflow.com/*",
+    "*://bugzilla-dev.allizom.org/*",
+    "*://bugs.eclipse.org/*",
+    "*://bugzilla.mozilla.org/*",
+    "*://bugzilla.kernel.org/*",
+    "*://bz.apache.org/*"
   ],
   "externally_connectable": {
     "matches": [

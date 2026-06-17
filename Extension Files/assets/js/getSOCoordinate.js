@@ -20,40 +20,26 @@
 
 // Listen for messages, (stackoverflow) currently listens for code, images, the post's text
 // the post's tags, and the question itself, it also logs and sends a response based on the result/data
+if (window.iTrace_getSOCoordinate_Loaded) {
+} else {
+    window.iTrace_getSOCoordinate_Loaded = true;
+    console.log('Get SO Questions Coordinates Script Started');
 
-console.log('Get SO Questions Coordinates Script Started');
+    chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
+        var questionElement = document.getElementById('question');
+        var answerElements = document.getElementById('answers').children;
+        var elements = document.elementsFromPoint(msg.relX, msg.relY);
 
-chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
-    var questionElement = document.getElementById('question');
-    var answerElements = document.getElementById('answers').children;
-    var elements = document.elementsFromPoint(msg.relX, msg.relY);
-
-    var sentResult = false;
-    for (element of elements) {
-        if (element) {
-            if (element.tagName == 'CODE') {
-                if (questionElement.contains(element)) {
-                    // question code
-                    console.log('question code');
-                    sentResult = true;
-                    sendResponse({
-                        result: 'question code',
-                        relX: msg.relX,
-                        relY: msg.relY,
-                        time: msg.time,
-                        tagname: element.tagName,
-                        id: element.id,
-                        url: msg.url
-                    });
-                    return;
-                }
-                for (answer of answerElements) {
-                    if (answer.contains(element)) {
-                        // answer code
-                        console.log('answer code');
+        var sentResult = false;
+        for (element of elements) {
+            if (element) {
+                if (element.tagName == 'CODE') {
+                    if (questionElement.contains(element)) {
+                        // question code
+                        console.log('question code');
                         sentResult = true;
                         sendResponse({
-                            result: 'answer code',
+                            result: 'question code',
                             relX: msg.relX,
                             relY: msg.relY,
                             time: msg.time,
@@ -63,32 +49,32 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                         });
                         return;
                     }
+                    for (answer of answerElements) {
+                        if (answer.contains(element)) {
+                            // answer code
+                            console.log('answer code');
+                            sentResult = true;
+                            sendResponse({
+                                result: 'answer code',
+                                relX: msg.relX,
+                                relY: msg.relY,
+                                time: msg.time,
+                                tagname: element.tagName,
+                                id: element.id,
+                                url: msg.url
+                            });
+                            return;
+                        }
+                    }
                 }
-            }
 
-            if (element.tagName == 'IMG') {
-                if (questionElement.contains(element)) {
-                    // question code
-                    console.log('question image');
-                    sentResult = true;
-                    sendResponse({
-                        result: 'question image',
-                        relX: msg.relX,
-                        relY: msg.relY,
-                        time: msg.time,
-                        tagname: element.tagName,
-                        id: element.id,
-                        url: msg.url
-                    });
-                    return;
-                }
-                for (answer of answerElements) {
-                    if (answer.contains(element)) {
-                        // answer code
-                        console.log('answer image');
+                if (element.tagName == 'IMG') {
+                    if (questionElement.contains(element)) {
+                        // question code
+                        console.log('question image');
                         sentResult = true;
                         sendResponse({
-                            result: 'answer image',
+                            result: 'question image',
                             relX: msg.relX,
                             relY: msg.relY,
                             time: msg.time,
@@ -98,33 +84,33 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                         });
                         return;
                     }
+                    for (answer of answerElements) {
+                        if (answer.contains(element)) {
+                            // answer code
+                            console.log('answer image');
+                            sentResult = true;
+                            sendResponse({
+                                result: 'answer image',
+                                relX: msg.relX,
+                                relY: msg.relY,
+                                time: msg.time,
+                                tagname: element.tagName,
+                                id: element.id,
+                                url: msg.url
+                            });
+                            return;
+                        }
+                    }
                 }
-            }
 
-            if (element.classList.contains('js-post-body') ||
-                element.classList.contains('s-prose')) {
-                if (questionElement.contains(element)) {
-                    // question code
-                    console.log('question text');
-                    sentResult = true;
-                    sendResponse({
-                        result: 'question text',
-                        relX: msg.relX,
-                        relY: msg.relY,
-                        time: msg.time,
-                        tagname: element.tagName,
-                        id: element.id,
-                        url: msg.url
-                    });
-                    return;
-                }
-                for (answer of answerElements) {
-                    if (answer.contains(element)) {
-                        // answer code
-                        console.log('answer text');
+                if (element.classList.contains('js-post-body') ||
+                    element.classList.contains('s-prose')) {
+                    if (questionElement.contains(element)) {
+                        // question code
+                        console.log('question text');
                         sentResult = true;
                         sendResponse({
-                            result: 'answer text',
+                            result: 'question text',
                             relX: msg.relX,
                             relY: msg.relY,
                             time: msg.time,
@@ -134,31 +120,30 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                         });
                         return;
                     }
+                    for (answer of answerElements) {
+                        if (answer.contains(element)) {
+                            // answer code
+                            console.log('answer text');
+                            sentResult = true;
+                            sendResponse({
+                                result: 'answer text',
+                                relX: msg.relX,
+                                relY: msg.relY,
+                                time: msg.time,
+                                tagname: element.tagName,
+                                id: element.id,
+                                url: msg.url
+                            });
+                            return;
+                        }
+                    }
                 }
-            }
 
-            if (element.classList.contains('post-tag')) {
-                console.log('question-tag');
-                sentResult = true;
-                sendResponse({
-                    result: 'question tag',
-                    relX: msg.relX,
-                    relY: msg.relY,
-                    time: msg.time,
-                    tagname: element.tagName,
-                    id: element.id,
-                    url: msg.url
-                });
-                return;
-            }
-
-            if (element.closest('.js-voting-container')) {
-                if (questionElement.contains(element)) {
-                    // question code
-                    console.log('question vote');
+                if (element.classList.contains('post-tag')) {
+                    console.log('question-tag');
                     sentResult = true;
                     sendResponse({
-                        result: 'question vote',
+                        result: 'question tag',
                         relX: msg.relX,
                         relY: msg.relY,
                         time: msg.time,
@@ -168,13 +153,14 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                     });
                     return;
                 }
-                for (answer of answerElements) {
-                    if (answer.contains(element)) {
-                        // answer code
-                        console.log('answer vote');
+
+                if (element.closest('.js-voting-container')) {
+                    if (questionElement.contains(element)) {
+                        // question code
+                        console.log('question vote');
                         sentResult = true;
                         sendResponse({
-                            result: 'answer vote',
+                            result: 'question vote',
                             relX: msg.relX,
                             relY: msg.relY,
                             time: msg.time,
@@ -184,32 +170,49 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                         });
                         return;
                     }
+                    for (answer of answerElements) {
+                        if (answer.contains(element)) {
+                            // answer code
+                            console.log('answer vote');
+                            sentResult = true;
+                            sendResponse({
+                                result: 'answer vote',
+                                relX: msg.relX,
+                                relY: msg.relY,
+                                time: msg.time,
+                                tagname: element.tagName,
+                                id: element.id,
+                                url: msg.url
+                            });
+                            return;
+                        }
+                    }
                 }
-            }
 
-            if (element.closest('#question-header')) {
-                console.log('question-title');
-                sentResult = true;
-                sendResponse({
-                    result: 'question-title',
-                    relX: msg.relX,
-                    relY: msg.relY,
-                    time: msg.time,
-                    tagname: element.tagName,
-                    id: element.id,
-                    url: msg.url
-                });
-                return;
+                if (element.closest('#question-header')) {
+                    console.log('question-title');
+                    sentResult = true;
+                    sendResponse({
+                        result: 'question-title',
+                        relX: msg.relX,
+                        relY: msg.relY,
+                        time: msg.time,
+                        tagname: element.tagName,
+                        id: element.id,
+                        url: msg.url
+                    });
+                    return;
+                }
             }
         }
-    }
 
-    if (!sentResult) {
-        sendResponse({
-            result: null,
-            time: msg.time,
-            relX: msg.relX,
-            relY: msg.relY
-        })
-    }
-});
+        if (!sentResult) {
+            sendResponse({
+                result: null,
+                time: msg.time,
+                relX: msg.relX,
+                relY: msg.relY
+            })
+        }
+    });
+}
