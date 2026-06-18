@@ -30,11 +30,5 @@
     "*://bugzilla.mozilla.org/*",
     "*://bugzilla.kernel.org/*",
     "*://bz.apache.org/*"
-  ],
-  "externally_connectable": {
-    "matches": [
-      "*://*.stackoverflow.com/**",
-      "https://stackoverflow.com/*"
-    ]
-  }
+  ]
 }
