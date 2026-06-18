@@ -26,13 +26,28 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
     const elements = document.elementsFromPoint(msg.relX, msg.relY);
     let sentResult = false;
     for (element of elements) {
-        console.log("looping");
+
         if (element.tagName === 'A' && element.querySelector('div')?.textContent.trim() === 'Open') {
             const numberOpen = element.querySelector('span[aria-hidden="true"]')?.textContent.trim();
             console.log('Number of Open issues:', numberOpen);
             sentResult = true;
             sendResponse({
                 result: `NumIssuesOpen-${numberOpen}`,
+                relX: msg.relX,
+                relY: msg.relY,
+                time: msg.time,
+                tagname: element.tagName,
+                id: element.id,
+                url: msg.url
+            });
+            return;
+        }
+        if (element.tagName === 'A' && element.querySelector('div')?.textContent.trim() === 'Closed') {
+            const numberClosed = element.querySelector('span[aria-hidden="true"]')?.textContent.trim();
+            console.log('Number of Closed issues:', numberClosed);
+            sentResult = true;
+            sendResponse({
+                result: `NumIssuesClosed-${numberClosed}`,
                 relX: msg.relX,
                 relY: msg.relY,
                 time: msg.time,

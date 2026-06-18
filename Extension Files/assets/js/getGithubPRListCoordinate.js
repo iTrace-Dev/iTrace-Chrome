@@ -31,7 +31,8 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
             if (!element) continue;
 
             // NumPROpen
-            if (element.classList && element.classList.contains('btn-link') && element.innerHTML && element.innerHTML.includes('Open') && element.tagName === 'A') {
+            if (element.classList && element.classList.contains("btn-link") && element.innerHTML && element.innerHTML.includes('Open') && element.tagName === 'A') {
+                console.log("NumPROpen")
                 const numberOpen = element.textContent.trim();
                 sendResponse({
                     result: `NumPROpen-${numberOpen}`,
@@ -47,6 +48,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
 
             // NumPRClosed
             if (element.classList && element.classList.contains('btn-link') && element.innerHTML && element.innerHTML.includes('Closed') && element.tagName === 'A') {
+                console.log("NumPRClosed")
                 const numClosed = element.textContent.trim();
                 sendResponse({
                     result: `NumPRClosed-${numClosed}`,
@@ -83,6 +85,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
             if (element.tagName === 'A') {
                 const hoverType = element.getAttribute && element.getAttribute('data-hovercard-type');
                 if (hoverType === 'user') {
+                    console.log("Username")
                     const username = element.textContent.trim();
                     if (username) {
                         sendResponse({
@@ -103,6 +106,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
             if (element.tagName === 'A') {
                 const hover = element.getAttribute && element.getAttribute('data-hovercard-type');
                 if (hover === 'pull_request') {
+                    console.log("PullReqest link")
                     const title = element.textContent.trim();
                     const href = element.getAttribute('href') || '';
                     const m = href.match(/\/pull\/(\d+)(?:\/|$)/);
@@ -125,6 +129,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
             if (element.tagName === 'A') {
                 const ariaAttr = element.getAttribute && element.getAttribute('aria-label');
                 if (ariaAttr && ariaAttr.toLowerCase().includes('comment')) {
+                    console.log("NumOfComments")
                     const numberOfComments = ariaAttr.match(/\d+/)?.[0] || ariaAttr;
                     sendResponse({
                         result: `NumOfComments-${numberOfComments}`,
@@ -140,6 +145,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
 
             // Time opened (relative-time element)
             if (element.tagName === 'RELATIVE-TIME') {
+                console.log("Time opened (relative-time element)")
                 const opened = element.innerHTML;
                 const timestamp = (element.getAttribute && element.getAttribute('title')) || null;
                 sendResponse({
@@ -156,6 +162,7 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
 
             // Task progress count
             if (element.tagName === 'TRACKED-ISSUES-PROGRESS') {
+                console.log("Task progress count")
                 const taskProgress = element.dataset.total;
                 sendResponse({
                     result: `TaskCompletion-${taskProgress}`,
