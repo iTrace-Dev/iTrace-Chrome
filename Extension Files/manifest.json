@@ -3,76 +3,6 @@
   "name": "iTrace-Chrome Plugin",
   "description": "Plugin which allows for tracking eyegaze data on webpages in Chrome.",
   "version": "0.0.1",
-  "content_scripts": [
-    {
-      "matches": [
-        "https://stackoverflow.com/questions*"
-      ],
-      "js": [
-        "/assets/js/getSOCoordinate.js"
-      ]
-    },
-    {
-      "matches": [
-        "*://bugzilla-dev.allizom.org/*",
-        "*://bugs.eclipse.org/*",
-        "*://bugzilla.mozilla.org/*",
-        "*://bugzilla.kernel.org/*",
-        "*://bz.apache.org/*"
-      ],
-      "js": [
-        "/assets/js/getBZCoordinate.js"
-      ]
-    },
-    {
-      "matches": [
-        "https://stackoverflow.com/search*"
-      ],
-      "js": [
-        "/assets/js/getSearchCoordinate.js"
-      ]
-    },
-    {
-      "matches": [
-        "https://*.google.com/*"
-      ],
-      "js": [
-        "/assets/js/getGoogleCoordinate.js"
-      ]
-    },
-    {
-      "matches": [
-        "https://github.com/*/*/issues*"
-      ],
-      "js": [
-        "/assets/js/getGithubIssueListCoordinate.js"
-      ]
-    },
-    {
-      "matches": [
-        "https://github.com/*/*/pulls*"
-      ],
-      "js": [
-        "/assets/js/getGithubPRListCoordinate.js"
-      ]
-    },
-    {
-      "matches": [
-        "https://github.com/*/pull/*"
-      ],
-      "js": [
-        "/assets/js/getGithubPullRequestCoordinate.js"
-      ]
-    },
-    {
-      "matches": [
-        "https://github.com/*"
-      ],
-      "js": [
-        "/assets/js/getGithubDevProfileCoordinate.js"
-      ]
-    }
-  ],
   "background": {
     "service_worker": "assets/js/background.js"
   },
@@ -89,7 +19,6 @@
     "storage",
     "scripting",
     "tabs",
-    "activeTab",
     "downloads"
   ],
   "host_permissions": [
