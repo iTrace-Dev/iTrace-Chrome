@@ -10,12 +10,15 @@
 <div id="main_window" style="width:500px; border: 1px solid black">
     Click Button Below to Connect To Server
     <button id="start_session">Start</button>
-    <div id="session_status">Not Connected To Core</div>
+    <div id="websocket_status">Not Connected To Core</div>
+    <div id="session_status">No Active Session</div>
 </div>
 
 <div id="config_window" style="width:500px; border: 1px solid black; display:none;">
     <label for="empty_responses">Empty Script Response</label>
     <input id="empty_responses" type="checkbox">
+    <label for="persist_core_connection">Persist Core Connection</label>
+    <input id="persist_core_connection" type="checkbox">
 </div>
 <hr/>
 <button id="write_xml">Write XML Data</button>

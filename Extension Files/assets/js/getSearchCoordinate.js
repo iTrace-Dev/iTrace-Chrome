@@ -20,76 +20,79 @@
 
 // Listen for messages - logs and sends response based on search result, currently listesn for a question and its summary,
 // a vote and its count, and a summary
+if (window.iTrace_getSearchCoordinate_Loaded) {
+} else {
+    window.iTrace_getSearchCoordinate_Loaded = true;
+    console.log('Get SO Search Coordinates Script Started');
 
-console.log('Get SO Search Coordinates Script Started');
+    chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
+        var elements = document.elementsFromPoint(msg.relX, msg.relY);
 
-chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
-    var elements = document.elementsFromPoint(msg.relX, msg.relY);
-
-    var fixationElement = document.getElementById('fixationMover');
-    if (fixationElement == null) {
-        fixationElement = document.createElement("DIV");
-        fixationElement.setAttribute('id', 'fixationMover');
-        fixationElement.setAttribute('style', 'border-radius:100%;border:5px red solid;height:30px;width:30px;position:fixed');
-        document.body.appendChild(fixationElement);
-    }
-
-    fixationElement.style.left = msg.relX + "px";
-    fixationElement.style.top = msg.relY + "px";
-
-    var sentResult = false;
-    // console.log('Hello');
-    for (element of elements) {
-        if (element.classList.contains('answer-hyperlink')) {
-            console.log('answer-hyperlink');
-            sentResult = true;
-            sendResponse({
-                result: 'answer-hyperlink',
-                relX: msg.relX,
-                relY: msg.relY,
-                time: msg.time,
-                tagname: element.tagName,
-                id: element.id,
-                url: msg.url
-            });
-            return;
+        var fixationElement = document.getElementById('fixationMover');
+        if (fixationElement == null) {
+            fixationElement = document.createElement("DIV");
+            fixationElement.setAttribute('id', 'fixationMover');
+            fixationElement.setAttribute('style', 'border-radius:100%;border:5px red solid;height:30px;width:30px;position:fixed');
+            document.body.appendChild(fixationElement);
         }
-        if (element.classList.contains('s-post-summary--stats-item-number')) {
-            console.log('question-vote count');
-            sentResult = true;
-            sendResponse({
-                result: 'question vote count',
-                relX: msg.relX,
-                relY: msg.relY,
-                time: msg.time,
-                tagname: element.tagName,
-                id: element.id,
-                url: msg.url
-            });
-            return;
-        }
-        if (element.classList.contains('s-post-summary--content-excerpt')) {
-            console.log('summary');
-            sentResult = true;
-            sendResponse({
-                result: 'summary',
-                relX: msg.relX,
-                relY: msg.relY,
-                time: msg.time,
-                tagname: element.tagName,
-                id: element.id,
-                url: msg.url
-            });
-            return;
-        }
-    }
 
-    if (!sentResult) {
-        sendResponse({
-            result: null,
-            time: msg.time,
-            relX: msg.relX,
-            relY: msg.relY
-        })
-    }
-});
+        fixationElement.style.left = msg.relX + "px";
+        fixationElement.style.top = msg.relY + "px";
+
+        var sentResult = false;
+        // console.log('Hello');
+        for (element of elements) {
+            if (element.classList.contains('answer-hyperlink')) {
+                console.log('answer-hyperlink');
+                sentResult = true;
+                sendResponse({
+                    result: 'answer-hyperlink',
+                    relX: msg.relX,
+                    relY: msg.relY,
+                    time: msg.time,
+                    tagname: element.tagName,
+                    id: element.id,
+                    url: msg.url
+                });
+                return;
+            }
+            if (element.classList.contains('s-post-summary--stats-item-number')) {
+                console.log('question-vote count');
+                sentResult = true;
+                sendResponse({
+                    result: 'question vote count',
+                    relX: msg.relX,
+                    relY: msg.relY,
+                    time: msg.time,
+                    tagname: element.tagName,
+                    id: element.id,
+                    url: msg.url
+                });
+                return;
+            }
+            if (element.classList.contains('s-post-summary--content-excerpt')) {
+                console.log('summary');
+                sentResult = true;
+                sendResponse({
+                    result: 'summary',
+                    relX: msg.relX,
+                    relY: msg.relY,
+                    time: msg.time,
+                    tagname: element.tagName,
+                    id: element.id,
+                    url: msg.url
+                });
+                return;
+            }
+        }
+
+        if (!sentResult) {
+            sendResponse({
+                result: null,
+                time: msg.time,
+                relX: msg.relX,
+                relY: msg.relY
+            })
+        }
+    });
+}

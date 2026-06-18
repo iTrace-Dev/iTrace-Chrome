@@ -17,67 +17,70 @@
  * https://www.gnu.org/licenses/.
  ************************************************************************************************************************
  ********************************/
-
-console.log('Get Google Coordinates Script Started');
+if (window.iTrace_getGoogleCoordinate_Loaded) {
+} else {
+    window.iTrace_getGoogleCoordinate_Loaded = true;
+    console.log('Get Google Coordinates Script Started');
 
 // listens and logs for google's data
-chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-    console.log("[ContentScript] Message received:", msg);
+    chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+        console.log("[ContentScript] Message received:", msg);
 
-    if (!msg || !msg.text) {
-        console.warn("[ContentScript] Invalid message", msg);
-        sendResponse({error: "Invalid message"});
+        if (!msg || !msg.text) {
+            console.warn("[ContentScript] Invalid message", msg);
+            sendResponse({error: "Invalid message"});
+            return true;
+        }
+
+        const elements = document.elementsFromPoint(msg.relX, msg.relY);
+        console.log("[ContentScript] Found", elements.length, "elements at point", msg.relX, msg.relY);
+
+        let responseData = null;
+
+        for (const element of elements) {
+            console.log("Element: ", element);
+            if (element.classList.contains('yuRUbf')) {
+                console.log('[ContentScript] Matched search title');
+                responseData = {
+                    result: 'search title',
+                    word: element.textContent,
+                    url: msg.url,
+                    time: msg.time,
+                    relX: msg.relX,
+                    relY: msg.relY,
+                    tagname: element.tagName,
+                };
+                break;
+            }
+            if (element.classList.contains('VwiC3b')) {
+                console.log('[ContentScript] Matched search description');
+                responseData = {
+                    result: 'search description',
+                    word: element.textContent,
+                    url: msg.url,
+                    time: msg.time,
+                    relX: msg.relX,
+                    relY: msg.relY,
+                    tagname: element.tagName,
+                };
+                break;
+            }
+        }
+
+        if (!responseData) {
+            console.log("[ContentScript] No matching element found");
+            responseData = {
+                result: null,
+                time: msg.time,
+                relX: msg.relX,
+                relY: msg.relY
+            };
+        }
+
+        console.log("[ContentScript] Sending response:", responseData);
+        sendResponse(responseData);
         return true;
-    }
-
-    const elements = document.elementsFromPoint(msg.relX, msg.relY);
-    console.log("[ContentScript] Found", elements.length, "elements at point", msg.relX, msg.relY);
-
-    let responseData = null;
-
-    for (const element of elements) {
-        console.log("Element: ", element);
-        if (element.classList.contains('yuRUbf')) {
-            console.log('[ContentScript] Matched search title');
-            responseData = {
-                result: 'search title',
-                word: element.textContent,
-                url: msg.url,
-                time: msg.time,
-                relX: msg.relX,
-                relY: msg.relY,
-                tagname: element.tagName,
-            };
-            break;
-        }
-        if (element.classList.contains('VwiC3b')) {
-            console.log('[ContentScript] Matched search description');
-            responseData = {
-                result: 'search description',
-                word: element.textContent,
-                url: msg.url,
-                time: msg.time,
-                relX: msg.relX,
-                relY: msg.relY,
-                tagname: element.tagName,
-            };
-            break;
-        }
-    }
-
-    if (!responseData) {
-        console.log("[ContentScript] No matching element found");
-        responseData = {
-            result: null,
-            time: msg.time,
-            relX: msg.relX,
-            relY: msg.relY
-        };
-    }
-
-    console.log("[ContentScript] Sending response:", responseData);
-    sendResponse(responseData);
-    return true;
-});
+    });
+}
 
 

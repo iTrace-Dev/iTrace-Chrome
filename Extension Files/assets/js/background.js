@@ -19,13 +19,20 @@
  ********************************/
 // importScripts("jquery-3.3.1.js");
 // main JavaScript driver for the iTrace-Chrome plugin, all data will be handled here
+
+reinjectAllTabs();
+
 chrome.runtime.onStartup.addListener(() => {
     chrome.storage.local.get("iTraceState", (data) => {
         if (data.iTraceState) {
             Object.assign(iTraceChrome, data.iTraceState);
         }
+        iTraceChrome.isSessionActive = false;
+        iTraceChrome.isConnectedToCore = false;
+        iTraceChrome.websocket = null;
     });
 });
+
 const iTraceChrome = {
     // this function takes the x and y coordinates from the screen and the browser
     // to get the offset, which then returns the translated coordinates based off if the user
@@ -163,9 +170,6 @@ const iTraceChrome = {
 
     // writes the sessionData in XML and downloads the file, then resets sessionData and clears objectStore
     writeXMLData: function () {
-        if (iTraceChrome.websocket != null) {
-            iTraceChrome.websocket.close();
-        }
 
         var sessionsData = iTraceChrome.groupByFilename(iTraceChrome.sessionData);
 
@@ -216,6 +220,52 @@ const iTraceChrome = {
         }
     },
 
+    messageScript: function (tabId, url, coords, timeStamp, x, y) {
+        let messageType = null;
+
+        if (url.includes('stackoverflow.com/questions/')) {
+            messageType = 'get_so_coordinate';
+        } else if (url.includes('https://bug')) {
+            messageType = 'get_bz_coordinate';
+        } else if (url.includes('stackoverflow.com/search')) {
+            messageType = 'get_search_coordinate';
+        } else if (url.includes('google.com')) {
+            messageType = 'get_google_coordinate';
+        } else if (url.includes('github.com') && url.includes('/issues')) {
+            messageType = 'get_github_issues_coordinate';
+        } else if (url.includes('github.com') && url.includes('/pulls')) {
+            messageType = 'get_github_prlist_coordinate';
+        } else if (url.includes('github.com') && url.includes('/pull/')) {
+            messageType = 'get_github_pr_coordinate';
+        } else if (url.includes('github.com')) {
+            messageType = 'get_github_dev_profile_coordinate';
+        }
+
+        if (!messageType) return;
+
+        chrome.tabs.sendMessage(tabId, {
+            text: messageType,
+            relX: coords.relX,
+            relY: coords.relY,
+            time: timeStamp,
+            url: url
+        }).then(response => {
+            iTraceChrome.printResults(response, x, y);
+        }).catch(err => {
+            if (
+                err.message &&
+                err.message.includes("Receiving end does not exist")
+            ) {
+
+                chrome.tabs.get(tabId, (tab) => {
+                    if (tab?.url) {
+                        injectScriptForUrl(tabId, tab.url);
+                    }
+                });
+            }
+        });
+    },
+
     // this function deals with incoming eyegaze data
     webSocketHandler: function (e) {
         var eyeGazeData = e.data;
@@ -225,11 +275,37 @@ const iTraceChrome = {
             var tmp = eyeGazeData.substring(eyeGazeData.indexOf(',') + 1);
             tmp = tmp.substring(tmp.indexOf(',') + 1);
             iTraceChrome.fileLocation = tmp.substring(0, tmp.indexOf(','));
+            iTraceChrome.isSessionActive = true;
+
+            chrome.runtime.sendMessage({
+                type: "sessionStatus",
+                status: "started"
+            });
+
             return;
         }
         // if session is no longer active, then set iTraceChrome's active status to false
-        else if (eyeGazeData.substring(0, eyeGazeData.indexOf(',')) == "session_end") {
-            iTraceChrome.isActive = false;
+        else if (eyeGazeData.substring(0, eyeGazeData.indexOf(',')) == "") {
+            iTraceChrome.isSessionActive = false;
+
+            if (!iTraceChrome.persistCoreConnectionEnabled) {
+                chrome.runtime.sendMessage({type: "websocketStatus", status: "disconnected"}).catch(() => {
+                });
+                chrome.runtime.sendMessage({type: "sessionStatus", status: "ended"}).catch(() => {
+                });
+
+                if (iTraceChrome.websocket) {
+                    iTraceChrome.websocket.onmessage = null;
+                    iTraceChrome.websocket.onclose = null;
+                    const ws = iTraceChrome.websocket;
+                    iTraceChrome.websocket = null;
+                    ws.close();
+                }
+                iTraceChrome.isConnectedToCore = false;
+            } else {
+                chrome.runtime.sendMessage({type: "sessionStatus", status: "ended"}).catch(() => {
+                });
+            }
         }
         var timeStampAndCoords = eyeGazeData.substring(eyeGazeData.indexOf(',') + 1);
         var timeStamp = timeStampAndCoords.substring(0, timeStampAndCoords.indexOf(','));
@@ -251,107 +327,7 @@ const iTraceChrome = {
             // user is looking in the html viewport
             // need to check which website the user is looking at
             chrome.tabs.query({active: true, currentWindow: true}).then((tabs) => {
-                let url = tabs[0].url;
-                console.log(tabs[0].url);
-                if (url.includes('stackoverflow.com/questions/')) {
-                    chrome.tabs.sendMessage(iTraceChrome.id, {
-                        text: 'get_so_coordinate',
-                        relX: coords.relX,
-                        relY: coords.relY,
-                        time: timeStamp,
-                        url: url
-                    }).then(response => {
-                        iTraceChrome.printResults(response, x, y);
-                    });
-                }
-                if (url.includes('https://bug')) { // NOTE: This include may be incorect, will need to do some more research
-                    chrome.tabs.sendMessage(iTraceChrome.id, {
-                        text: 'get_bz_coordinate',
-                        relX: coords.relX,
-                        relY: coords.relY,
-                        time: timeStamp,
-                        url: url
-                    }).then(response => {
-                        iTraceChrome.printResults(response, x, y);
-                    });
-                }
-                if (url.includes('stackoverflow.com/search')) {
-                    chrome.tabs.sendMessage(iTraceChrome.id, {
-                        text: 'get_search_coordinate',
-                        relX: coords.relX,
-                        relY: coords.relY,
-                        time: timeStamp,
-                        url: url
-                    }).then(response => {
-                        iTraceChrome.printResults(response, x, y);
-                    });
-                }
-                if (url.includes('google.com')) {
-                    chrome.tabs.sendMessage(iTraceChrome.id, {
-                        text: 'get_google_coordinate',
-                        relX: coords.relX,
-                        relY: coords.relY,
-                        time: timeStamp,
-                        url: url
-                    }).then(response => {
-                        iTraceChrome.printResults(response, x, y);
-                    });
-                }
-                if (url.includes('github.com/*/*/issues')) {
-                    chrome.tabs.sendMessage(iTraceChrome.id, {
-                        text: 'get_github_issues_coordinate',
-                        relX: coords.relX,
-                        relY: coords.relY,
-                        time: timeStamp,
-                        url: url
-                    }).then(response => {
-                        iTraceChrome.printResults(response, x, y);
-                    });
-                }
-                if (url.includes('github.com/*/*/pulls')) {
-                    chrome.tabs.sendMessage(iTraceChrome.id, {
-                        text: 'get_github_prlist_coordinate',
-                        relX: coords.relX,
-                        relY: coords.relY,
-                        time: timeStamp,
-                        url: url
-                    }).then(response => {
-                        iTraceChrome.printResults(response, x, y);
-                    });
-                }
-                if (url.includes('github.com/*/*/pull')) {
-                    chrome.tabs.sendMessage(iTraceChrome.id, {
-                        text: 'get_github_pr_coordinate',
-                        relX: coords.relX,
-                        relY: coords.relY,
-                        time: timeStamp,
-                        url: url
-                    }).then(response => {
-                        iTraceChrome.printResults(response, x, y);
-                    });
-                }
-                if (url.includes('github.com') && url.includes('pull')) {
-                    chrome.tabs.sendMessage(iTraceChrome.id, {
-                        text: 'get_github_pr_coordinate',
-                        relX: coords.relX,
-                        relY: coords.relY,
-                        time: timeStamp,
-                        url: url
-                    }).then(response => {
-                        iTraceChrome.printResults(response, x, y);
-                    });
-                }
-                if (url.includes('github.com/')) {
-                    chrome.tabs.sendMessage(iTraceChrome.id, {
-                        text: 'get_github_dev_profile_coordinate',
-                        relX: coords.relX,
-                        relY: coords.relY,
-                        time: timeStamp,
-                        url: url
-                    }).then(response => {
-                        iTraceChrome.printResults(response, x, y);
-                    });
-                }
+                this.messageScript(tabs[0].id, tabs[0].url, coords, timeStamp, x, y);
             });
         }
     },
@@ -377,11 +353,15 @@ const iTraceChrome = {
         iTraceChrome.id = iTraceChrome.tab.id;
         console.log('START SESSION');
 
+        if (iTraceChrome.websocket) {
+            iTraceChrome.websocket.close();
+            iTraceChrome.websocket = null;
+        }
+
         iTraceChrome.websocket = new WebSocket('ws://localhost:7007');
 
         // listen for eye gaze data coming from the server
         iTraceChrome.websocket.onmessage = iTraceChrome.webSocketHandler.bind(iTraceChrome);
-        iTraceChrome.isActive = true;
 
         chrome.scripting.executeScript({
             target: {tabId: iTraceChrome.id},
@@ -407,6 +387,7 @@ const iTraceChrome = {
                     id: iTraceChrome.id,
                     fileLocation: iTraceChrome.fileLocation,
                     emptyResponsesEnabled: iTraceChrome.emptyResponsesEnabled,
+                    persistCoreConnectionEnabled: iTraceChrome.persistCoreConnectionEnabled,
                     // viewport vars tell us where the Chrome window begins in the top left corner relative to the screen
                     // They are measured in Css pixels
                     viewportX: iTraceChrome.viewportX,
@@ -414,8 +395,7 @@ const iTraceChrome = {
                     browserWidth: iTraceChrome.browserWidth,
                     browserHeight: iTraceChrome.browserHeight,
                     // Device Pixel Ratio
-                    dpr: iTraceChrome.dpr,
-                    isActive: iTraceChrome.isActive
+                    dpr: iTraceChrome.dpr
                 }
             });
         });
@@ -423,10 +403,14 @@ const iTraceChrome = {
         chrome.runtime.sendMessage({type: "websocketStatus", status: "attempting"});
 
         iTraceChrome.websocket.onopen = () => {
+            iTraceChrome.isConnectedToCore = true;
             chrome.runtime.sendMessage({type: "websocketStatus", status: "connected"});
         };
 
         iTraceChrome.websocket.onclose = () => {
+            iTraceChrome.isConnectedToCore = false;
+            iTraceChrome.isSessionActive = false;
+            iTraceChrome.websocket = null;
             chrome.runtime.sendMessage({type: "websocketStatus", status: "disconnected"});
         };
 
@@ -478,37 +462,100 @@ const iTraceChrome = {
     },
     isInitialized: false,
     fileLocation: "",
-    isActive: false,
+    isSessionActive: false,
+    isConnectedToCore: false,
     sessionData: [],
     currentUrl: "",
     db: null
 }
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.type === "isInitializedITraceChrome") {
-        sendResponse(iTraceChrome.isInitialized);
-    }
-    if (message.type === "initializeITraceChrome") {
-        iTraceChrome.initialize()
-    }
-    if (message.type === "writeXMLDataITraceChrome") {
-        console.log("writeXMLDataITraceChrome");
-        iTraceChrome.writeXMLData();
-    }
-    if (message.type === "startSessionITraceChrome") {
-        iTraceChrome.startSession(message.vars[0]);
-    }
-    if (message.type === "isActiveITraceChrome") {
-        sendResponse(iTraceChrome.isActive);
+function injectScriptForUrl(tabId, url) {
+    let file = null;
+
+    if (url.includes('stackoverflow.com/questions/')) {
+        file = '/assets/js/getSOCoordinate.js';
+    } else if (url.includes('stackoverflow.com/search')) {
+        file = '/assets/js/getSearchCoordinate.js';
+    } else if (url.includes('bugzilla') || url.includes('bugs.eclipse.org') || url.includes('bz.apache.org')) {
+        file = '/assets/js/getBZCoordinate.js';
+    } else if (url.includes('google.com')) {
+        file = '/assets/js/getGoogleCoordinate.js';
+    } else if (url.includes('github.com') && url.includes('/issues')) {
+        file = '/assets/js/getGithubIssueListCoordinate.js';
+    } else if (url.includes('github.com') && url.includes('/pulls')) {
+        file = '/assets/js/getGithubPRListCoordinate.js';
+    } else if (url.includes('github.com') && url.includes('/pull/')) {
+        file = '/assets/js/getGithubPullRequestCoordinate.js';
+    } else if (url.includes('github.com')) {
+        file = '/assets/js/getGithubDevProfileCoordinate.js';
     }
 
-    if (message.type === "toggleEmptyResponses") {
-        iTraceChrome.emptyResponsesEnabled = message.enabled;
+    if (!file) return;
+    console.log("Injected:", file, url);
+    chrome.scripting.executeScript({
+        target: {tabId},
+        files: [file]
+    }).catch(err => {
+        console.warn("Injection failed:", err);
+    });
+}
+
+function reinjectAllTabs() {
+    chrome.tabs.query({}, (tabs) => {
+        tabs.forEach((tab) => {
+            if (tab.id && tab.url) {
+                injectScriptForUrl(tab.id, tab.url);
+            }
+        });
+    });
+}
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+        if (message.type === "isInitializedITraceChrome") {
+            sendResponse(iTraceChrome.isInitialized);
+        }
+        if (message.type === "initializeITraceChrome") {
+            iTraceChrome.initialize()
+        }
+        if (message.type === "writeXMLDataITraceChrome") {
+            console.log("writeXMLDataITraceChrome");
+            iTraceChrome.writeXMLData();
+        }
+        if (message.type === "startSessionITraceChrome") {
+            iTraceChrome.startSession(message.vars[0]);
+        }
+        if (message.type === "isActiveITraceChrome") {
+            sendResponse(iTraceChrome.isActive);
+        }
+
+        if (message.type === "toggleEmptyResponses") {
+            iTraceChrome.emptyResponsesEnabled = message.enabled;
+
+            chrome.storage.local.set({
+                emptyResponsesEnabled: message.enabled
+            });
+
+            console.log("Empty responses enabled:", iTraceChrome.emptyResponsesEnabled);
+        }
+    }
+)
+
+chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
+    injectScriptForUrl(details.tabId, details.url);
+});
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+    if (changeInfo.status === "complete" && tab.url) {
+        injectScriptForUrl(tabId, tab.url);;
+    }
+
+    if (message.type === "togglePersistCoreConnection") {
+        iTraceChrome.persistCoreConnectionEnabled = message.enabled;
 
         chrome.storage.local.set({
-            emptyResponsesEnabled: message.enabled
+            persistCoreConnectionEnabled: message.enabled
         });
 
-        console.log("Empty responses enabled:", iTraceChrome.emptyResponsesEnabled);
+        console.log("Persist core connection enabled:", iTraceChrome.persistCoreConnectionEnabled);
     }
 });

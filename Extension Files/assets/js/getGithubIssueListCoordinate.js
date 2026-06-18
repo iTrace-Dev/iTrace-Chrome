@@ -17,75 +17,171 @@
  * https://www.gnu.org/licenses/.
  ************************************************************************************************************************
  ********************************/
+if (window.iTrace_getGithubIssueListCoordinate_Loaded) {
+} else {
+    window.iTrace_getGithubIssueListCoordinate_Loaded = true;
+    console.log('Github Issues Script Started');
 
-console.log('Github Issues Script Started');
+    // listens for the different GitHub issue coordinates and data associated with it, then sends
+    // response based on its results
+    chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
+        const elements = document.elementsFromPoint(msg.relX, msg.relY);
+        let sentResult = false;
+        for (element of elements) {
 
-// listens for the different GitHub issue coordinates and data associated with it, then sends
-// response based on its results
-chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
-    const elements = document.elementsFromPoint(msg.relX, msg.relY);
-    let sentResult = false;
-    for (element of elements) {
-
-        if (element.tagName === 'A' && element.querySelector('div')?.textContent.trim() === 'Open') {
-            const numberOpen = element.querySelector('span[aria-hidden="true"]')?.textContent.trim();
-            console.log('Number of Open issues:', numberOpen);
-            sentResult = true;
-            sendResponse({
-                result: `NumIssuesOpen-${numberOpen}`,
-                relX: msg.relX,
-                relY: msg.relY,
-                time: msg.time,
-                tagname: element.tagName,
-                id: element.id,
-                url: msg.url
-            });
-            return;
-        }
-        if (element.tagName === 'A' && element.querySelector('div')?.textContent.trim() === 'Closed') {
-            const numberClosed = element.querySelector('span[aria-hidden="true"]')?.textContent.trim();
-            console.log('Number of Closed issues:', numberClosed);
-            sentResult = true;
-            sendResponse({
-                result: `NumIssuesClosed-${numberClosed}`,
-                relX: msg.relX,
-                relY: msg.relY,
-                time: msg.time,
-                tagname: element.tagName,
-                id: element.id,
-                url: msg.url
-            });
-            return;
-        }
-        if (element.dataset.component === "Breadcrumbs.Item") {
-            console.log("Project/Organization Name");
-
-            const organization = element.textContent.trim();
-
-            sentResult = true;
-            sendResponse({
-                result: `Organization/ProjectName-${organization}`,
-                relX: msg.relX,
-                relY: msg.relY,
-                time: msg.time,
-                tagname: element.tagName,
-                id: element.id,
-                url: msg.url
-            });
-            return;
-        }
-        if (
-            element.tagName === "A" &&
-            element.hasAttribute("data-hovercard-type")
-        ) {
-            const type = element.getAttribute("data-hovercard-type");
-            // This may need to be changed to include project names
-            if (type === 'user') {
-                console.log('user link')
-                const user = element.innerHTML;
+            if (element.tagName === 'A' && element.querySelector('div')?.textContent.trim() === 'Open') {
+                const numberOpen = element.querySelector('span[aria-hidden="true"]')?.textContent.trim();
+                console.log('Number of Open issues:', numberOpen);
                 sentResult = true;
                 sendResponse({
-                    result: `Username-${user}`,
+                    result: `NumIssuesOpen-${numberOpen}`,
+                    relX: msg.relX,
+                    relY: msg.relY,
+                    time: msg.time,
+                    tagname: element.tagName,
+                    id: element.id,
+                    url: msg.url
+                });
+                return;
+            }
+            if (element.tagName === 'A' && element.querySelector('div')?.textContent.trim() === 'Closed') {
+                const numberClosed = element.querySelector('span[aria-hidden="true"]')?.textContent.trim();
+                console.log('Number of Closed issues:', numberClosed);
+                sentResult = true;
+                sendResponse({
+                    result: `NumIssuesClosed-${numberClosed}`,
+                    relX: msg.relX,
+                    relY: msg.relY,
+                    time: msg.time,
+                    tagname: element.tagName,
+                    id: element.id,
+                    url: msg.url
+                });
+                return;
+            }
+            if (element.dataset.component === "Breadcrumbs.Item") {
+                console.log("Project/Organization Name");
+
+                const organization = element.textContent.trim();
+
+                sentResult = true;
+                sendResponse({
+                    result: `Organization/ProjectName-${organization}`,
+                    relX: msg.relX,
+                    relY: msg.relY,
+                    time: msg.time,
+                    tagname: element.tagName,
+                    id: element.id,
+                    url: msg.url
+                });
+                return;
+            }
+            if (
+                element.tagName === "A" &&
+                element.hasAttribute("data-hovercard-type")
+            ) {
+                const type = element.getAttribute("data-hovercard-type");
+                // This may need to be changed to include project names
+                if (type === 'user') {
+                    console.log('user link')
+                    const user = element.innerHTML;
+                    sentResult = true;
+                    sendResponse({
+                        result: `Username-${user}`,
+                        relX: msg.relX,
+                        relY: msg.relY,
+                        time: msg.time,
+                        tagname: element.tagName,
+                        id: element.id,
+                        url: msg.url
+                    });
+                    return;
+                }
+            }
+
+            if (
+                element.tagName === "A" &&
+                element.getAttribute("data-testid") === "issue-pr-title-link"
+            ) {
+                console.log('issue link')
+                const title = element.textContent.trim();
+                sentResult = true;
+                sendResponse({
+                    result: `Issue-${title}`,
+                    relX: msg.relX,
+                    relY: msg.relY,
+                    time: msg.time,
+                    tagname: element.tagName,
+                    id: element.id,
+                    url: msg.url
+                });
+                return;
+            }
+
+            if (
+                element.hasAttribute("aria-label")
+            ) {
+                const label = element.getAttribute("aria-label");
+                if (/comment/.test(label)) {
+                    const numberOfComments = element.attributes.getNamedItem('aria-label').value;
+                    sentResult = true;
+                    sendResponse({
+                        result: `NumOfComments-${numberOfComments}`,
+                        relX: msg.relX,
+                        relY: msg.relY,
+                        time: msg.time,
+                        tagname: element.tagName,
+                        id: element.id,
+                        url: msg.url
+                    });
+                    return;
+                }
+            }
+
+            if (
+                element.tagName === "A" &&
+                (
+                    element.href.includes("label%3A") ||
+                    element.href.includes("/labels/")
+                )
+            ) {
+                console.log('Issue label')
+                const labelTitle = element.innerHTML;
+                sentResult = true;
+                sendResponse({
+                    result: `IssueLabel-${labelTitle}`,
+                    relX: msg.relX,
+                    relY: msg.relY,
+                    time: msg.time,
+                    tagname: element.tagName,
+                    id: element.id,
+                    url: msg.url
+                });
+                return;
+            }
+            if (element.tagName === 'RELATIVE-TIME') {
+                console.log('Time open')
+                const opened = element.innerHTML;
+                const timestamp = element.attributes.getNamedItem('title').value;
+                sentResult = true;
+                sendResponse({
+                    result: `IssueOpened-${opened} on ${timestamp}`,
+                    relX: msg.relX,
+                    relY: msg.relY,
+                    time: msg.time,
+                    tagname: element.tagName,
+                    id: element.id,
+                    url: msg.url
+                });
+                return;
+            }
+            if (element.closest('[data-listview-component="trailing-badge"]') &&
+                /\d+\s*\/\s*\d+/.test(element.textContent)) {
+                console.log('Task progress bar')
+                const taskProgress = element.innerHTML;
+                sentResult = true;
+                sendResponse({
+                    result: `TaskCompletion-${taskProgress}`,
                     relX: msg.relX,
                     relY: msg.relY,
                     time: msg.time,
@@ -96,107 +192,14 @@ chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
                 return;
             }
         }
-
-        if (
-            element.tagName === "A" &&
-            element.getAttribute("data-testid") === "issue-pr-title-link"
-        ) {
-            console.log('issue link')
-            const title = element.textContent.trim();
-            sentResult = true;
+        if (!sentResult) {
             sendResponse({
-                result: `Issue-${title}`,
-                relX: msg.relX,
-                relY: msg.relY,
-                time: msg.time,
-                tagname: element.tagName,
-                id: element.id,
-                url: msg.url
-            });
-            return;
-        }
-
-        if (
-            element.hasAttribute("aria-label")
-        ) {
-            const label = element.getAttribute("aria-label");
-            if (/comment/.test(label)) {
-                const numberOfComments = element.attributes.getNamedItem('aria-label').value;
-                sentResult = true;
-                sendResponse({
-                    result: `NumOfComments-${numberOfComments}`,
-                    relX: msg.relX,
-                    relY: msg.relY,
-                    time: msg.time,
-                    tagname: element.tagName,
-                    id: element.id,
-                    url: msg.url
-                });
-                return;
-            }
-        }
-
-        if (
-            element.tagName === "A" &&
-            (
-                element.href.includes("label%3A") ||
-                element.href.includes("/labels/")
-            )
-        ) {
-            console.log('Issue label')
-            const labelTitle = element.innerHTML;
-            sentResult = true;
-            sendResponse({
-                result: `IssueLabel-${labelTitle}`,
-                relX: msg.relX,
-                relY: msg.relY,
-                time: msg.time,
-                tagname: element.tagName,
-                id: element.id,
-                url: msg.url
-            });
-            return;
-        }
-        if (element.tagName === 'RELATIVE-TIME') {
-            console.log('Time open')
-            const opened = element.innerHTML;
-            const timestamp = element.attributes.getNamedItem('title').value;
-            sentResult = true;
-            sendResponse({
-                result: `IssueOpened-${opened} on ${timestamp}`,
-                relX: msg.relX,
-                relY: msg.relY,
-                time: msg.time,
-                tagname: element.tagName,
-                id: element.id,
-                url: msg.url
-            });
-            return;
-        }
-        if (element.closest('[data-listview-component="trailing-badge"]') &&
-            /\d+\s*\/\s*\d+/.test(element.textContent)) {
-            console.log('Task progress bar')
-            const taskProgress = element.innerHTML;
-            sentResult = true;
-            sendResponse({
-                result: `TaskCompletion-${taskProgress}`,
-                relX: msg.relX,
-                relY: msg.relY,
-                time: msg.time,
-                tagname: element.tagName,
-                id: element.id,
-                url: msg.url
-            });
-            return;
-        }
-    }
-    if (!sentResult) {
-        sendResponse({
                 result: null,
                 time: msg.time,
                 relX: msg.relX,
                 relY: msg.relY
             }
-        )
-    }
-});
+            )
+        }
+    });
+}
