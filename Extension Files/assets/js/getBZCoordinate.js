@@ -30,7 +30,7 @@ if (window.iTrace_getBZCoordinate_Loaded) {
 
         var sentResult = false;
         for (element of elements) {
-            if (element.classList.contains('module-categories')) {
+            if (element.id === 'module-categories') {
                 console.log('question info - categories');
                 sentResult = true;
                 sendResponse({
@@ -60,6 +60,21 @@ if (window.iTrace_getBZCoordinate_Loaded) {
                 return;
             }
 
+            if (element.id === 'module-attachments') {
+                console.log('attachment info');
+                sentResult = true;
+                sendResponse({
+                    result: 'attachment info',
+                    relX: msg.relX,
+                    relY: msg.relY,
+                    time: msg.time,
+                    tagname: element.tagName,
+                    id: element.id,
+                    url: msg.url
+                });
+                return;
+            }
+
             if (element.classList.contains('comment-text')) {
                 console.log('answer info');
                 sentResult = true;
@@ -74,30 +89,15 @@ if (window.iTrace_getBZCoordinate_Loaded) {
                 });
                 return;
             }
-
-            if (element.tagName == 'TR') {
-                console.log('attachment info');
-                sentResult = true;
-                sendResponse({
-                    result: 'attachment info',
-                    relX: msg.relX,
-                    relY: msg.relY,
-                    time: msg.time,
-                    tagname: element.tagName,
-                    id: element.id,
-                    url: msg.url
-                });
-                return;
-            }
         }
 
         if (!sentResult) {
             sendResponse({
-                    result: null,
-                    time: msg.time,
-                    relX: msg.relX,
-                    relY: msg.relY
-                }
+                result: null,
+                time: msg.time,
+                relX: msg.relX,
+                relY: msg.relY
+            }
             )
         }
     });

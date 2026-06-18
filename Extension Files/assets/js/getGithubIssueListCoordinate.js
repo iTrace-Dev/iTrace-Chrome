@@ -22,20 +22,55 @@ if (window.iTrace_getGithubIssueListCoordinate_Loaded) {
     window.iTrace_getGithubIssueListCoordinate_Loaded = true;
     console.log('Github Issues Script Started');
 
-// listens for the different GitHub issue coordinates and data associated with it, then sends
-// response based on its results
+    // listens for the different GitHub issue coordinates and data associated with it, then sends
+    // response based on its results
     chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
         const elements = document.elementsFromPoint(msg.relX, msg.relY);
         let sentResult = false;
         for (element of elements) {
+
             if (element.tagName === 'A' && element.querySelector('div')?.textContent.trim() === 'Open') {
                 const numberOpen = element.querySelector('span[aria-hidden="true"]')?.textContent.trim();
+                console.log('Number of Open issues:', numberOpen);
                 sentResult = true;
                 sendResponse({
                     result: `NumIssuesOpen-${numberOpen}`,
                     relX: msg.relX,
                     relY: msg.relY,
                     time: msg.time,
+                    tagname: element.tagName,
+                    id: element.id,
+                    url: msg.url
+                });
+                return;
+            }
+            if (element.tagName === 'A' && element.querySelector('div')?.textContent.trim() === 'Closed') {
+                const numberClosed = element.querySelector('span[aria-hidden="true"]')?.textContent.trim();
+                console.log('Number of Closed issues:', numberClosed);
+                sentResult = true;
+                sendResponse({
+                    result: `NumIssuesClosed-${numberClosed}`,
+                    relX: msg.relX,
+                    relY: msg.relY,
+                    time: msg.time,
+                    tagname: element.tagName,
+                    id: element.id,
+                    url: msg.url
+                });
+                return;
+            }
+            if (element.dataset.component === "Breadcrumbs.Item") {
+                console.log("Project/Organization Name");
+
+                const organization = element.textContent.trim();
+
+                sentResult = true;
+                sendResponse({
+                    result: `Organization/ProjectName-${organization}`,
+                    relX: msg.relX,
+                    relY: msg.relY,
+                    time: msg.time,
+                    tagname: element.tagName,
                     id: element.id,
                     url: msg.url
                 });
@@ -47,21 +82,8 @@ if (window.iTrace_getGithubIssueListCoordinate_Loaded) {
             ) {
                 const type = element.getAttribute("data-hovercard-type");
                 // This may need to be changed to include project names
-                if (type === "organization") {
-
-                    const organization = element.textContent.trim();
-
-                    sentResult = true;
-                    sendResponse({
-                        result: `OrganizationName-${organization}`,
-                        relX: msg.relX,
-                        relY: msg.relY,
-                        time: msg.time,
-                        id: element.id,
-                        url: msg.url
-                    });
-                    return;
-                } else if (type === 'user') {
+                if (type === 'user') {
+                    console.log('user link')
                     const user = element.innerHTML;
                     sentResult = true;
                     sendResponse({
@@ -69,6 +91,7 @@ if (window.iTrace_getGithubIssueListCoordinate_Loaded) {
                         relX: msg.relX,
                         relY: msg.relY,
                         time: msg.time,
+                        tagname: element.tagName,
                         id: element.id,
                         url: msg.url
                     });
@@ -80,6 +103,7 @@ if (window.iTrace_getGithubIssueListCoordinate_Loaded) {
                 element.tagName === "A" &&
                 element.getAttribute("data-testid") === "issue-pr-title-link"
             ) {
+                console.log('issue link')
                 const title = element.textContent.trim();
                 sentResult = true;
                 sendResponse({
@@ -87,6 +111,7 @@ if (window.iTrace_getGithubIssueListCoordinate_Loaded) {
                     relX: msg.relX,
                     relY: msg.relY,
                     time: msg.time,
+                    tagname: element.tagName,
                     id: element.id,
                     url: msg.url
                 });
@@ -105,6 +130,8 @@ if (window.iTrace_getGithubIssueListCoordinate_Loaded) {
                         relX: msg.relX,
                         relY: msg.relY,
                         time: msg.time,
+                        tagname: element.tagName,
+                        id: element.id,
                         url: msg.url
                     });
                     return;
@@ -118,6 +145,7 @@ if (window.iTrace_getGithubIssueListCoordinate_Loaded) {
                     element.href.includes("/labels/")
                 )
             ) {
+                console.log('Issue label')
                 const labelTitle = element.innerHTML;
                 sentResult = true;
                 sendResponse({
@@ -125,12 +153,14 @@ if (window.iTrace_getGithubIssueListCoordinate_Loaded) {
                     relX: msg.relX,
                     relY: msg.relY,
                     time: msg.time,
+                    tagname: element.tagName,
                     id: element.id,
                     url: msg.url
                 });
                 return;
             }
             if (element.tagName === 'RELATIVE-TIME') {
+                console.log('Time open')
                 const opened = element.innerHTML;
                 const timestamp = element.attributes.getNamedItem('title').value;
                 sentResult = true;
@@ -139,6 +169,7 @@ if (window.iTrace_getGithubIssueListCoordinate_Loaded) {
                     relX: msg.relX,
                     relY: msg.relY,
                     time: msg.time,
+                    tagname: element.tagName,
                     id: element.id,
                     url: msg.url
                 });
@@ -154,6 +185,7 @@ if (window.iTrace_getGithubIssueListCoordinate_Loaded) {
                     relX: msg.relX,
                     relY: msg.relY,
                     time: msg.time,
+                    tagname: element.tagName,
                     id: element.id,
                     url: msg.url
                 });
@@ -162,11 +194,11 @@ if (window.iTrace_getGithubIssueListCoordinate_Loaded) {
         }
         if (!sentResult) {
             sendResponse({
-                    result: null,
-                    time: msg.time,
-                    relX: msg.relX,
-                    relY: msg.relY
-                }
+                result: null,
+                time: msg.time,
+                relX: msg.relX,
+                relY: msg.relY
+            }
             )
         }
     });
