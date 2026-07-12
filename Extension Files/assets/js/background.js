@@ -458,25 +458,6 @@ const iTraceChrome = {
     persistCoreConnectionEnabled: false
 }
 
-chrome.storage.local.get(
-    ["iTraceState", "emptyResponsesEnabled", "persistCoreConnectionEnabled"],
-    (data) => {
-        if (data.iTraceState) {
-            Object.assign(iTraceChrome, data.iTraceState);
-        }
-
-        iTraceChrome.emptyResponsesEnabled =
-            data.emptyResponsesEnabled ?? false;
-
-        iTraceChrome.persistCoreConnectionEnabled =
-            data.persistCoreConnectionEnabled ?? false;
-
-        iTraceChrome.isSessionActive = false;
-        iTraceChrome.isConnectedToCore = false;
-        iTraceChrome.websocket = null;
-    }
-);
-
 function injectScriptForUrl(tabId, url) {
     let file = null;
 
@@ -517,6 +498,25 @@ function reinjectAllTabs() {
         });
     });
 }
+
+chrome.storage.local.get(
+    ["iTraceState", "emptyResponsesEnabled", "persistCoreConnectionEnabled"],
+    (data) => {
+        if (data.iTraceState) {
+            Object.assign(iTraceChrome, data.iTraceState);
+        }
+
+        iTraceChrome.emptyResponsesEnabled =
+            data.emptyResponsesEnabled ?? false;
+
+        iTraceChrome.persistCoreConnectionEnabled =
+            data.persistCoreConnectionEnabled ?? false;
+
+        iTraceChrome.isSessionActive = false;
+        iTraceChrome.isConnectedToCore = false;
+        iTraceChrome.websocket = null;
+    }
+);
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (message.type === "isInitializedITraceChrome") {
