@@ -22,17 +22,6 @@
 
 reinjectAllTabs();
 
-chrome.runtime.onStartup.addListener(() => {
-    chrome.storage.local.get("iTraceState", (data) => {
-        if (data.iTraceState) {
-            Object.assign(iTraceChrome, data.iTraceState);
-        }
-        iTraceChrome.isSessionActive = false;
-        iTraceChrome.isConnectedToCore = false;
-        iTraceChrome.websocket = null;
-    });
-});
-
 const iTraceChrome = {
     // this function takes the x and y coordinates from the screen and the browser
     // to get the offset, which then returns the translated coordinates based off if the user
@@ -66,7 +55,7 @@ const iTraceChrome = {
             return null;
         }
 
-        return { relX: relX, relY: relY };
+        return {relX: relX, relY: relY};
     },
 
     // this function groups files by their name, param data are the files
@@ -120,7 +109,7 @@ const iTraceChrome = {
     // this function takes the data from the session and adds it to the iTraceChrome's sessionData attribute
     // and stores it in objectStore
     printResults: function (response, x, y) {
-        chrome.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
+        chrome.tabs.query({active: true, currentWindow: true}).then((tabs) => {
             iTraceChrome.currentUrl = tabs[0].url;
 
             let sessionDataItem;
@@ -177,7 +166,7 @@ const iTraceChrome = {
             // call method to parse JSON to xml string, then write to file
             if (!file || file === "undefined") continue;
             var xmlString = iTraceChrome.json2xml(sessionsData[file]);
-            var xmlBlob = new Blob([xmlString], { type: "text/xml" });
+            var xmlBlob = new Blob([xmlString], {type: "text/xml"});
 
             var reader = new FileReader();
             reader.onload = function () {
@@ -289,9 +278,9 @@ const iTraceChrome = {
             iTraceChrome.isSessionActive = false;
 
             if (!iTraceChrome.persistCoreConnectionEnabled) {
-                chrome.runtime.sendMessage({ type: "websocketStatus", status: "disconnected" }).catch(() => {
+                chrome.runtime.sendMessage({type: "websocketStatus", status: "disconnected"}).catch(() => {
                 });
-                chrome.runtime.sendMessage({ type: "sessionStatus", status: "ended" }).catch(() => {
+                chrome.runtime.sendMessage({type: "sessionStatus", status: "ended"}).catch(() => {
                 });
 
                 if (iTraceChrome.websocket) {
@@ -303,7 +292,7 @@ const iTraceChrome = {
                 }
                 iTraceChrome.isConnectedToCore = false;
             } else {
-                chrome.runtime.sendMessage({ type: "sessionStatus", status: "ended" }).catch(() => {
+                chrome.runtime.sendMessage({type: "sessionStatus", status: "ended"}).catch(() => {
                 });
             }
         }
@@ -326,7 +315,7 @@ const iTraceChrome = {
         } else {
             // user is looking in the html viewport
             // need to check which website the user is looking at
-            chrome.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
+            chrome.tabs.query({active: true, currentWindow: true}).then((tabs) => {
                 this.messageScript(tabs[0].id, tabs[0].url, coords, timeStamp, x, y);
             });
         }
@@ -364,7 +353,7 @@ const iTraceChrome = {
         iTraceChrome.websocket.onmessage = iTraceChrome.webSocketHandler.bind(iTraceChrome);
 
         chrome.scripting.executeScript({
-            target: { tabId: iTraceChrome.id },
+            target: {tabId: iTraceChrome.id},
             func: () => ({
                 innerWidth: window.innerWidth,
                 innerHeight: window.innerHeight,
@@ -386,8 +375,6 @@ const iTraceChrome = {
                 iTraceState: {
                     id: iTraceChrome.id,
                     fileLocation: iTraceChrome.fileLocation,
-                    emptyResponsesEnabled: iTraceChrome.emptyResponsesEnabled,
-                    persistCoreConnectionEnabled: iTraceChrome.persistCoreConnectionEnabled,
                     // viewport vars tell us where the Chrome window begins in the top left corner relative to the screen
                     // They are measured in Css pixels
                     viewportX: iTraceChrome.viewportX,
@@ -400,22 +387,22 @@ const iTraceChrome = {
             });
         });
 
-        chrome.runtime.sendMessage({ type: "websocketStatus", status: "attempting" });
+        chrome.runtime.sendMessage({type: "websocketStatus", status: "attempting"});
 
         iTraceChrome.websocket.onopen = () => {
             iTraceChrome.isConnectedToCore = true;
-            chrome.runtime.sendMessage({ type: "websocketStatus", status: "connected" });
+            chrome.runtime.sendMessage({type: "websocketStatus", status: "connected"});
         };
 
         iTraceChrome.websocket.onclose = () => {
             iTraceChrome.isConnectedToCore = false;
             iTraceChrome.isSessionActive = false;
             iTraceChrome.websocket = null;
-            chrome.runtime.sendMessage({ type: "websocketStatus", status: "disconnected" });
+            chrome.runtime.sendMessage({type: "websocketStatus", status: "disconnected"});
         };
 
         iTraceChrome.websocket.onerror = (err) => {
-            chrome.runtime.sendMessage({ type: "websocketStatus", status: "error", error: err.message });
+            chrome.runtime.sendMessage({type: "websocketStatus", status: "error", error: err.message});
         };
     },
 
@@ -431,7 +418,7 @@ const iTraceChrome = {
         }
         request.onupgradeneeded = function (event) {
             var db = event.target.result;
-            db.createObjectStore("sessionData", { keyPath: "timestamp" });
+            db.createObjectStore("sessionData", {keyPath: "timestamp"});
         }
         request.onsuccess = function (event) {
             iTraceChrome.db = event.target.result;
@@ -466,8 +453,29 @@ const iTraceChrome = {
     isConnectedToCore: false,
     sessionData: [],
     currentUrl: "",
-    db: null
+    db: null,
+    emptyResponsesEnabled: false,
+    persistCoreConnectionEnabled: false
 }
+
+chrome.storage.local.get(
+    ["iTraceState", "emptyResponsesEnabled", "persistCoreConnectionEnabled"],
+    (data) => {
+        if (data.iTraceState) {
+            Object.assign(iTraceChrome, data.iTraceState);
+        }
+
+        iTraceChrome.emptyResponsesEnabled =
+            data.emptyResponsesEnabled ?? false;
+
+        iTraceChrome.persistCoreConnectionEnabled =
+            data.persistCoreConnectionEnabled ?? false;
+
+        iTraceChrome.isSessionActive = false;
+        iTraceChrome.isConnectedToCore = false;
+        iTraceChrome.websocket = null;
+    }
+);
 
 function injectScriptForUrl(tabId, url) {
     let file = null;
@@ -493,7 +501,7 @@ function injectScriptForUrl(tabId, url) {
     if (!file) return;
     console.log("Injected:", file, url);
     chrome.scripting.executeScript({
-        target: { tabId },
+        target: {tabId},
         files: [file]
     }).catch(err => {
         console.warn("Injection failed:", err);
@@ -511,46 +519,46 @@ function reinjectAllTabs() {
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.type === "isInitializedITraceChrome") {
-        sendResponse(iTraceChrome.isInitialized);
-    }
-    if (message.type === "initializeITraceChrome") {
-        iTraceChrome.initialize()
-    }
-    if (message.type === "writeXMLDataITraceChrome") {
-        console.log("writeXMLDataITraceChrome");
-        iTraceChrome.writeXMLData();
-    }
-    if (message.type === "startSessionITraceChrome") {
-        iTraceChrome.startSession(message.vars[0]);
-    }
-    if (message.type === "isConnectedITraceChrome") {
-        sendResponse(iTraceChrome.isConnectedToCore);
-    }
-    if (message.type === "isActiveITraceChrome") {
-        sendResponse(iTraceChrome.isSessionActive);
-    }
+        if (message.type === "isInitializedITraceChrome") {
+            sendResponse(iTraceChrome.isInitialized);
+        }
+        if (message.type === "initializeITraceChrome") {
+            iTraceChrome.initialize()
+        }
+        if (message.type === "writeXMLDataITraceChrome") {
+            console.log("writeXMLDataITraceChrome");
+            iTraceChrome.writeXMLData();
+        }
+        if (message.type === "startSessionITraceChrome") {
+            iTraceChrome.startSession(message.vars[0]);
+        }
+        if (message.type === "isConnectedITraceChrome") {
+            sendResponse(iTraceChrome.isConnectedToCore);
+        }
+        if (message.type === "isActiveITraceChrome") {
+            sendResponse(iTraceChrome.isSessionActive);
+        }
 
-    if (message.type === "toggleEmptyResponses") {
-        iTraceChrome.emptyResponsesEnabled = message.enabled;
+        if (message.type === "toggleEmptyResponses") {
+            iTraceChrome.emptyResponsesEnabled = message.enabled;
 
-        chrome.storage.local.set({
-            emptyResponsesEnabled: message.enabled
-        });
+            chrome.storage.local.set({
+                emptyResponsesEnabled: message.enabled
+            });
 
-        console.log("Empty responses enabled:", iTraceChrome.emptyResponsesEnabled);
+            console.log("Empty responses enabled:", iTraceChrome.emptyResponsesEnabled);
+        }
+
+        if (message.type === "togglePersistCoreConnection") {
+            iTraceChrome.persistCoreConnectionEnabled = message.enabled;
+
+            chrome.storage.local.set({
+                persistCoreConnectionEnabled: message.enabled
+            });
+
+            console.log("Persist core connection enabled:", iTraceChrome.persistCoreConnectionEnabled);
+        }
     }
-
-    if (message.type === "togglePersistCoreConnection") {
-        iTraceChrome.persistCoreConnectionEnabled = message.enabled;
-
-        chrome.storage.local.set({
-            persistCoreConnectionEnabled: message.enabled
-        });
-
-        console.log("Persist core connection enabled:", iTraceChrome.persistCoreConnectionEnabled);
-    }
-}
 )
 
 chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
@@ -559,7 +567,7 @@ chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (changeInfo.status === "complete" && tab.url) {
-        injectScriptForUrl(tabId, tab.url);;
+        injectScriptForUrl(tabId, tab.url);
     }
 
     // if (message.type === "togglePersistCoreConnection") {
