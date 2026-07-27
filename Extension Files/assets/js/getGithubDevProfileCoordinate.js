@@ -24,6 +24,7 @@ if (window.iTrace_getGithubDevProfileCoordinate_Loaded) {
 
     // listens for data from different GitHub profile attributes then sends a response based on its results
     chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
+        if (msg.text !== "get_github_dev_profile_coordinate") return;
         const elements = document.elementsFromPoint(msg.relX, msg.relY);
         let sentResult = false;
         for (element of elements) {
@@ -285,11 +286,11 @@ if (window.iTrace_getGithubDevProfileCoordinate_Loaded) {
         }
         if (!sentResult) {
             sendResponse({
-                result: null,
-                time: msg.time,
-                relX: msg.relX,
-                relY: msg.relY
-            }
+                    result: null,
+                    time: msg.time,
+                    relX: msg.relX,
+                    relY: msg.relY
+                }
             )
         }
 
