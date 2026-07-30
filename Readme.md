@@ -5,7 +5,7 @@
 * Enable ```Developer mode``` by flipping the switch in the upper-right corner.
 * Click on ```Load unpacked```. [This will open a file dialog box.]
 * Choose the folder ```Extension Files```, located inside iTrace-Chrome that you've cloned. This will add the ```iTrace-Chrome Plugin```. 
-* Click ```Details``` on the ```iTrace-Chrome Plugin```, and enable ```Pin to toolbar``` by flipping the associated switch. This will add the ```iTrace-Chrome Plugin``` extension icon to the toolbar, the icon looks like an eye. 
+* Click ```Details``` on the ```iTrace-Chrome Plugin```, and enable ```Pin to toolbar``` by flipping the associated switch. This will add the ```iTrace-Chrome Plugin``` extension icon to the toolbar. The icon looks like an eye. 
 * Now, you've setup the extension.
 
 ### Running the iTrace-Chrome extension
